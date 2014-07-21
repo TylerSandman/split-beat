@@ -43,6 +43,8 @@ public class PlayerController extends InputAdapter {
 		case(Input.Keys.X):
 			mWorld.pressSlot(NoteSlot.BOTTOM_LEFT);
 			break;
+		case(Input.Keys.R):
+			mWorld.requestReset();
 		}
 		return false;
 	}

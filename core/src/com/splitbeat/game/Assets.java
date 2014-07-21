@@ -49,7 +49,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.finishLoading();
 		
 		//Load music
-		mAssetManager.load("music/paper_planes.mp3", Music.class);
+		mAssetManager.load("music/paper_planes.ogg", Music.class);
 		mAssetManager.finishLoading();
 		
 		//Initialize assets
@@ -104,7 +104,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		public final Music paperPlanes;
 		AssetMusic(AssetManager am){
-			paperPlanes = am.get("music/paper_planes.mp3", Music.class);
+			paperPlanes = am.get("music/paper_planes.ogg", Music.class);
 		}	
 	}
 	

@@ -42,8 +42,7 @@ public class World implements Disposable{
 	private float mMeasureWidthPixels;
 	private float mNoteSpeed;		
 	private float mOffset;
-	private float mTimeSinceStart;
-	private boolean mPlaying;
+	private boolean mResetRequested;
 	
 	World(){
 		init();
@@ -53,11 +52,9 @@ public class World implements Disposable{
 		
 		mController = new PlayerController(this);
 		mTimingToDisplay = Timing.NONE;
-		mPlaying = false;
-		mTimeSinceStart = 0.f;	
 		mBatch = new SpriteBatch();
 		mScoreManager = new ScoreManager();
-		mPlaying = false;
+		mResetRequested = false;
 		
 		//Configure cameras
 		float w = Gdx.graphics.getWidth();
@@ -75,6 +72,7 @@ public class World implements Disposable{
 		mBPM = (float) Double.parseDouble(bpmStr);
 		String offsetStr = mLeftMap.getProperties().get("offset", String.class);
 		mOffset = (float) Double.parseDouble(offsetStr);
+		mOffset += Constants.GLOBAL_OFFSET;
 		
 		//Parse tracks
 		mLeftNotes = new ArrayList<Note>();
@@ -123,26 +121,96 @@ public class World implements Disposable{
 			outline.velocity.x = mNoteSpeed;
 		
 		//Adjust camera for song offset
-		if (mOffset <= 0){
-			mRightCamera.translate(-mNoteSpeed * mOffset, 0);
-			mRightCamera.update();
-			mLeftCamera.translate(mNoteSpeed * mOffset, 0);
-			mLeftCamera.update();
-			for(OutlineNote outline : mLeftOutlines)
-				outline.update(mOffset);
-			for(OutlineNote outline : mRightOutlines)
-				outline.update(mOffset);
-		}	
+		mRightCamera.translate(-mNoteSpeed * mOffset, 0);
+		mRightCamera.update();
+		mLeftCamera.translate(mNoteSpeed * mOffset, 0);
+		mLeftCamera.update();
+		for(OutlineNote outline : mLeftOutlines)
+			outline.update(mOffset);
+		for(OutlineNote outline : mRightOutlines)
+			outline.update(mOffset);
+			
+		AudioManager.instance.play(Assets.instance.music.paperPlanes);
+	}
+	
+	public void requestReset(){
+		mResetRequested = true;
+	}
+	
+	private void reset(){
+		
+		AudioManager.instance.stopMusic();
+		mTimingToDisplay = Timing.NONE;
+		mScoreManager = new ScoreManager();
+		mResetRequested = false;
+		
+		//Reset cameras
+		mLeftCamera.position.set(0, 0, 0);
+		mRightCamera.position.set(0, 0, 0);
+		mHUDCamera.position.set(0, 0, 0);
+		mLeftCamera.update();
+		mRightCamera.update();
+		mHUDCamera.update();
+		
+		//Parse tracks
+		mLeftNotes = new ArrayList<Note>();
+		MapLayer noteLayer =  mLeftMap.getLayers().get(0);
+		MapObjects notes = noteLayer.getObjects();
+		
+		for(MapObject note : notes)		
+			mLeftNotes.add(NoteFactory.createNote(note, mLeftMap, mScoreManager, true));
+		
+		mRightNotes = new ArrayList<Note>();
+		noteLayer = mRightMap.getLayers().get(0);
+		notes = noteLayer.getObjects();
+		
+		for(MapObject note : notes)
+			mRightNotes.add(NoteFactory.createNote(note, mRightMap, mScoreManager, false));
+		
+		ArrayList<Note> allNotes = new ArrayList<Note>();
+		allNotes.addAll(mLeftNotes);
+		allNotes.addAll(mRightNotes);
+		mScoreManager.setMaxScore(allNotes);
+			
+		//Sort by beat. Mostly used for efficient collision checking by
+		//iterating through the first few beats, rather than all of the notes
+		Collections.sort(mLeftNotes, new NoteComparator());
+		Collections.sort(mRightNotes, new NoteComparator());
+		
+		//Create note outlines for hit detection
+		mLeftOutlines = new OutlineNote[]{
+				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
+				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
+				new OutlineNote(NoteSlot.BOTTOM_LEFT, mScoreManager)
+		};
+		mRightOutlines = new OutlineNote[]{
+				new OutlineNote(NoteSlot.TOP_RIGHT, mScoreManager),
+				new OutlineNote(NoteSlot.MIDDLE_RIGHT, mScoreManager),
+				new OutlineNote(NoteSlot.BOTTOM_RIGHT, mScoreManager)
+		};
+
+		for(Note outline : mRightOutlines)
+			outline.velocity.x = -mNoteSpeed;
+		for(Note outline : mLeftOutlines)
+			outline.velocity.x = mNoteSpeed;
+		
+		float songOffset = mOffset - Constants.GLOBAL_OFFSET;
+		float netOffset = mOffset + songOffset;
+		//Adjust camera for song offset
+		mRightCamera.translate(-mNoteSpeed * netOffset, 0);
+		mRightCamera.update();
+		mLeftCamera.translate(mNoteSpeed * netOffset, 0);
+		mLeftCamera.update();
+		for(OutlineNote outline : mLeftOutlines)
+			outline.update(netOffset);
+		for(OutlineNote outline : mRightOutlines)
+			outline.update(netOffset);
+				
+		AudioManager.instance.play(Assets.instance.music.paperPlanes);
 	}
 	
 	public void update(float deltaTime){
 		
-		if ((mTimeSinceStart > mOffset) && (!mPlaying)){
-			AudioManager.instance.play(Assets.instance.music.paperPlanes);
-			mPlaying = true;
-		}
-		else
-			mTimeSinceStart += deltaTime;
 		mRightCamera.translate(-mNoteSpeed * deltaTime, 0);
 		mRightCamera.update();
 		mLeftCamera.translate(mNoteSpeed * deltaTime, 0);
@@ -156,7 +224,11 @@ public class World implements Disposable{
 		for(Note note : mRightNotes)
 			note.update(deltaTime);
 		handleInput(deltaTime);
-		cleanUpObjects();
+		cleanUpObjects();	
+		if (mResetRequested){
+			AudioManager.instance.stopMusic();
+			reset();
+		}
 	}
 	
 	public void handleInput(float deltaTime){
