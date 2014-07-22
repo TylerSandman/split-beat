@@ -43,7 +43,8 @@ public class World implements Disposable{
 	
 	private float mBPM;
 	private float mMeasureWidthPixels;
-	private float mNoteSpeed;		
+	private float mLeftNoteSpeed;	
+	private float mRightNoteSpeed;
 	private float mOffset;
 	private float mSecondsSincePlay;
 	private boolean mResetRequested;
@@ -111,19 +112,17 @@ public class World implements Disposable{
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap));
+				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap, true));
 			}
 		}
 		
 		mRightMarkers = new ArrayList<BPMMarker>();
-		MapLayers layers = mRightMap.getLayers();
-		int count = layers.getCount();
 		if (mRightMap.getLayers().getCount() > 1){
 			MapLayer markerLayer = mRightMap.getLayers().get(1);
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap));
+				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap, false));
 			}
 		}
 		
@@ -142,16 +141,16 @@ public class World implements Disposable{
 		//Calculate scroll speed
 		mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
 		//Pixels per measure times measures per second
-		mNoteSpeed = mMeasureWidthPixels * (mBPM / 4.f) / 60.f;
+		mLeftNoteSpeed = mRightNoteSpeed = mMeasureWidthPixels * (mBPM / 4.f) / 60.f;
 		for(Note outline : mRightOutlines)
-			outline.velocity.x = -mNoteSpeed;
+			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
-			outline.velocity.x = mNoteSpeed;
+			outline.velocity.x = mLeftNoteSpeed;
 		
 		//Adjust camera for song offset
-		mRightCamera.translate(-mNoteSpeed * mOffset, 0);
+		mRightCamera.translate(-mRightNoteSpeed * mOffset, 0);
 		mRightCamera.update();
-		mLeftCamera.translate(mNoteSpeed * mOffset, 0);
+		mLeftCamera.translate(mLeftNoteSpeed * mOffset, 0);
 		mLeftCamera.update();
 		for(OutlineNote outline : mLeftOutlines)
 			outline.update(mOffset);
@@ -213,7 +212,7 @@ public class World implements Disposable{
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap));
+				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap, true));
 			}
 		}
 		
@@ -225,7 +224,7 @@ public class World implements Disposable{
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap));
+				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap, false));
 			}
 		}
 		
@@ -241,17 +240,21 @@ public class World implements Disposable{
 				new OutlineNote(NoteSlot.BOTTOM_RIGHT, mScoreManager)
 		};
 
+		//Reset note speed in case of BPM markers
+		mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		//Pixels per measure times measures per second
+		mLeftNoteSpeed = mRightNoteSpeed = mMeasureWidthPixels * (mBPM / 4.f) / 60.f;
 		for(Note outline : mRightOutlines)
-			outline.velocity.x = -mNoteSpeed;
+			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
-			outline.velocity.x = mNoteSpeed;
+			outline.velocity.x = mLeftNoteSpeed;
 		
 		float songOffset = mOffset - Constants.GLOBAL_OFFSET;
 		float netOffset = mOffset + songOffset;
 		//Adjust camera for song offset
-		mRightCamera.translate(-mNoteSpeed * netOffset, 0);
+		mRightCamera.translate(-mRightNoteSpeed * netOffset, 0);
 		mRightCamera.update();
-		mLeftCamera.translate(mNoteSpeed * netOffset, 0);
+		mLeftCamera.translate(mLeftNoteSpeed * netOffset, 0);
 		mLeftCamera.update();
 		for(OutlineNote outline : mLeftOutlines)
 			outline.update(netOffset);
@@ -263,9 +266,9 @@ public class World implements Disposable{
 	
 	public void update(float deltaTime){
 
-		mRightCamera.translate(-mNoteSpeed * deltaTime, 0);
+		mRightCamera.translate(-mRightNoteSpeed * deltaTime, 0);
 		mRightCamera.update();
-		mLeftCamera.translate(mNoteSpeed * deltaTime, 0);
+		mLeftCamera.translate(mLeftNoteSpeed * deltaTime, 0);
 		mLeftCamera.update();
 		for(OutlineNote outline : mLeftOutlines)
 			outline.update(deltaTime);
@@ -275,6 +278,7 @@ public class World implements Disposable{
 			note.update(deltaTime);
 		for(Note note : mRightNotes)
 			note.update(deltaTime);
+		checkMarkerCollisions(deltaTime);
 		handleInput(deltaTime);
 		cleanUpObjects();	
 		if (mResetRequested){
@@ -488,7 +492,7 @@ public class World implements Disposable{
 				Note currentNote = mLeftNotes.get(i);
 				noteBounds = currentNote.getHitBounds();
 				if (Intersector.overlaps(noteBounds, outlineBounds)){
-					float distance = Math.abs(outline.position.x - currentNote.position.x) / mNoteSpeed;
+					float distance = Math.abs(outline.position.x - currentNote.position.x) / mLeftNoteSpeed;
 					mTimingToDisplay = currentNote.resolveTimingWindow(distance);
 					mScoreManager.processTiming(mTimingToDisplay);
 					currentNote.onPress();
@@ -506,13 +510,61 @@ public class World implements Disposable{
 				Note currentNote = mRightNotes.get(i);
 				noteBounds = currentNote.getHitBounds();
 				if (Intersector.overlaps(noteBounds, outlineBounds)){
-					float distance = Math.abs(outline.position.x - currentNote.position.x) / mNoteSpeed;
+					float distance = Math.abs(outline.position.x - currentNote.position.x) / mRightNoteSpeed;
 					mTimingToDisplay = currentNote.resolveTimingWindow(distance);
 					mScoreManager.processTiming(mTimingToDisplay);
 					currentNote.onPress();
 					outline.onNoteHit(mTimingToDisplay);
 				}
 			}
+		}
+	}
+	
+	private void checkMarkerCollisions(float deltaTime){
+		
+		checkLeftMarkerCollisions(deltaTime);
+		checkRightMarkerCollisions(deltaTime);
+	}
+	
+	private void checkLeftMarkerCollisions(float deltaTime){
+		
+		if (mLeftMarkers.isEmpty()) return;
+
+		OutlineNote markerOutline = mLeftOutlines[1];
+		BPMMarker nextMarker = mLeftMarkers.get(0);
+		float distance = Math.abs(markerOutline.position.x - nextMarker.position.x);
+		
+		//If the marker is within a frame of its beat
+		if (distance < mLeftNoteSpeed * deltaTime){
+			float newBPM = nextMarker.bpm;
+			//Calculate scroll speed
+			mMeasureWidthPixels = mLeftOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+			//Apply BPM change
+			mLeftNoteSpeed = mMeasureWidthPixels * (newBPM / 4.f) / 60.f;
+			for(OutlineNote outline : mLeftOutlines)
+				outline.velocity.x = mLeftNoteSpeed;
+			mLeftMarkers.remove(0);
+		}
+	}
+	
+	private void checkRightMarkerCollisions(float deltaTime){
+		
+		if (mRightMarkers.isEmpty()) return;
+
+		OutlineNote markerOutline = mRightOutlines[1];
+		BPMMarker nextMarker = mRightMarkers.get(0);
+		float distance = Math.abs(markerOutline.position.x - nextMarker.position.x);
+		
+		//If the marker is within a frame of its beat
+		if (distance < mRightNoteSpeed * deltaTime){
+			float newBPM = nextMarker.bpm;
+			//Calculate scroll speed
+			mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+			//Apply BPM change
+			mRightNoteSpeed = mMeasureWidthPixels * (newBPM / 4.f) / 60.f;
+			for(OutlineNote outline : mRightOutlines)
+				outline.velocity.x = -mRightNoteSpeed;
+			mRightMarkers.remove(0);
 		}
 	}
 	

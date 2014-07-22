@@ -109,4 +109,5 @@
    </properties>
   </object>
  </objectgroup>
+ <objectgroup name="Markers" width="1000" height="3"/>
 </map>
