@@ -41,4 +41,16 @@
   <object gid="8" x="26680" y="120"/>
   <object gid="8" x="25080" y="80"/>
  </objectgroup>
+ <objectgroup name="Markers" width="1000" height="3">
+  <object gid="4" x="34680" y="80">
+   <properties>
+    <property name="bpm" value="87.5"/>
+   </properties>
+  </object>
+  <object gid="4" x="34040" y="80">
+   <properties>
+    <property name="bpm" value="175"/>
+   </properties>
+  </object>
+ </objectgroup>
 </map>

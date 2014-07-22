@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -32,6 +33,8 @@ public class World implements Disposable{
 	private ScoreManager mScoreManager;
 	private TiledMap mLeftMap;
 	private TiledMap mRightMap;
+	private ArrayList<BPMMarker> mLeftMarkers;
+	private ArrayList<BPMMarker> mRightMarkers;
 	private ArrayList<Note> mLeftNotes;
 	private ArrayList<Note> mRightNotes;
 	private OutlineNote[] mLeftOutlines;
@@ -42,6 +45,7 @@ public class World implements Disposable{
 	private float mMeasureWidthPixels;
 	private float mNoteSpeed;		
 	private float mOffset;
+	private float mSecondsSincePlay;
 	private boolean mResetRequested;
 	
 	World(){
@@ -55,6 +59,7 @@ public class World implements Disposable{
 		mBatch = new SpriteBatch();
 		mScoreManager = new ScoreManager();
 		mResetRequested = false;
+		mSecondsSincePlay = 0.f;
 		
 		//Configure cameras
 		float w = Gdx.graphics.getWidth();
@@ -98,6 +103,29 @@ public class World implements Disposable{
 		//iterating through the first few beats, rather than all of the notes
 		Collections.sort(mLeftNotes, new NoteComparator());
 		Collections.sort(mRightNotes, new NoteComparator());
+		
+		//Parse BPM markers
+		mLeftMarkers = new ArrayList<BPMMarker>();
+		if (mLeftMap.getLayers().getCount() > 1){
+			MapLayer markerLayer = mLeftMap.getLayers().get(1);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap));
+			}
+		}
+		
+		mRightMarkers = new ArrayList<BPMMarker>();
+		MapLayers layers = mRightMap.getLayers();
+		int count = layers.getCount();
+		if (mRightMap.getLayers().getCount() > 1){
+			MapLayer markerLayer = mRightMap.getLayers().get(1);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap));
+			}
+		}
 		
 		//Create note outlines for hit detection
 		mLeftOutlines = new OutlineNote[]{
@@ -143,6 +171,7 @@ public class World implements Disposable{
 		mTimingToDisplay = Timing.NONE;
 		mScoreManager = new ScoreManager();
 		mResetRequested = false;
+		mSecondsSincePlay = 0.f;
 		
 		//Reset cameras
 		mLeftCamera.position.set(0, 0, 0);
@@ -177,6 +206,29 @@ public class World implements Disposable{
 		Collections.sort(mLeftNotes, new NoteComparator());
 		Collections.sort(mRightNotes, new NoteComparator());
 		
+		//Parse BPM markers
+		mLeftMarkers = new ArrayList<BPMMarker>();
+		if (mLeftMap.getLayers().getCount() > 1){
+			MapLayer markerLayer = mLeftMap.getLayers().get(1);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap));
+			}
+		}
+		
+		mRightMarkers = new ArrayList<BPMMarker>();
+		MapLayers layers = mRightMap.getLayers();
+		int count = layers.getCount();
+		if (mRightMap.getLayers().getCount() > 1){
+			MapLayer markerLayer = mRightMap.getLayers().get(1);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap));
+			}
+		}
+		
 		//Create note outlines for hit detection
 		mLeftOutlines = new OutlineNote[]{
 				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
@@ -210,7 +262,7 @@ public class World implements Disposable{
 	}
 	
 	public void update(float deltaTime){
-		
+
 		mRightCamera.translate(-mNoteSpeed * deltaTime, 0);
 		mRightCamera.update();
 		mLeftCamera.translate(mNoteSpeed * deltaTime, 0);
