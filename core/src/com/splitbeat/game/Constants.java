@@ -71,7 +71,7 @@ public class Constants {
 	public static final float FLAWLESS_WINDOW = 0.0200f;
 	public static final float HOLD_WINDOW = 0.1f;
 	public static final float NO_WINDOW = -1f;
-	public static final float GLOBAL_OFFSET = -0.1f;
+	public static final float GLOBAL_OFFSET = -0.12f;
 	
 	//Timing window point system
 	public static final int FLAWLESS_POINTS = 5;
@@ -84,6 +84,6 @@ public class Constants {
 	
 	//Conversion and measurement constants
 	public static final int MEASURE_WIDTH_NOTES = 4;
-	public static final float GLOW_ANIMATION_TIME = 0.15f;
-	public static final float OUTLINE_PRESS_ANIMATION_TIME = 0.15f;
+	public static final float GLOW_ANIMATION_TIME = 0.1f;
+	public static final float OUTLINE_PRESS_ANIMATION_TIME = 0.1f;
 }

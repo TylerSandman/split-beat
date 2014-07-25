@@ -427,7 +427,7 @@ public class World implements Disposable{
 				Note currentNote = mLeftNotes.get(i);
 				noteBounds = currentNote.getHitBounds();
 				if (Intersector.overlaps(noteBounds, outlineBounds)){
-					float distance = Math.abs(outline.position.x - currentNote.position.x) / mLeftNoteSpeed;
+					float distance = Math.abs(outline.position.x - currentNote.position.x) / mLeftNoteSpeed * 2.f;
 					mTimingToDisplay = currentNote.resolveTimingWindow(distance);
 					mScoreManager.processTiming(mTimingToDisplay);
 					currentNote.onPress();
@@ -445,7 +445,7 @@ public class World implements Disposable{
 				Note currentNote = mRightNotes.get(i);
 				noteBounds = currentNote.getHitBounds();
 				if (Intersector.overlaps(noteBounds, outlineBounds)){
-					float distance = Math.abs(outline.position.x - currentNote.position.x) / mRightNoteSpeed;
+					float distance = Math.abs(outline.position.x - currentNote.position.x) / mRightNoteSpeed * 2.f;
 					mTimingToDisplay = currentNote.resolveTimingWindow(distance);
 					mScoreManager.processTiming(mTimingToDisplay);
 					currentNote.onPress();
