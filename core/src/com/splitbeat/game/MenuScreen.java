@@ -19,6 +19,7 @@ public class MenuScreen extends AbstractGameScreen {
 	private Skin mSkin;
 	
 	private TextButton mPlayButton;
+	private TextButton mSyncButton;
 	
 	MenuScreen(Game game){
 		super(game);
@@ -41,22 +42,32 @@ public class MenuScreen extends AbstractGameScreen {
 		stack.add(background);
 		stack.add(buttonLayer);
 		
+		
 	}
 	
 	private Table buildButtonLayer(){
 		
 		Table layer = new Table();
 		layer.center();
-		mPlayButton = new TextButton("Play", mSkin, "default");
 		
+		mPlayButton = new TextButton("Play", mSkin, "default");		
 		mPlayButton.addListener(new ChangeListener() {
 			@Override
 			public void changed (ChangeEvent event, Actor actor) {
 			onPlayClicked();
 			}
-		});
+		});		
+		layer.add(mPlayButton).pad(Constants.BUTTON_PADDING);
+		layer.row();
 		
-		layer.add(mPlayButton);
+		mSyncButton = new TextButton("Sync", mSkin, "default");
+		mSyncButton.addListener(new ChangeListener(){
+			@Override
+			public void changed (ChangeEvent event, Actor actor){
+				onSyncClicked();
+			}
+		});
+		layer.add(mSyncButton);
 		return layer;
 	}
 
@@ -90,5 +101,9 @@ public class MenuScreen extends AbstractGameScreen {
 	
 	private void onPlayClicked(){
 		game.setScreen(new GameScreen(game));
+	}
+	
+	private void onSyncClicked(){
+		return;
 	}
 }

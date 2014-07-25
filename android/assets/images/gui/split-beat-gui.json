@@ -11,7 +11,7 @@ com.badlogic.gdx.graphics.g2d.BitmapFont: {
     
 com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
     default: {
-        up: red_button00,
+        up: red_button13, down: red_button10, over: red_button10,
         font: medium, fontColor: black
     }
 }
