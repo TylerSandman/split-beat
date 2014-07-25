@@ -3,28 +3,25 @@ package com.splitbeat.game;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayer;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.MapObjects;
 import com.badlogic.gdx.maps.tiled.TiledMap;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import com.splitbeat.game.Constants.NoteSlot;
-import com.splitbeat.game.Constants.NoteType;
 import com.splitbeat.game.Constants.Timing;
 
 public class World implements Disposable{
 	
+	private Game mGame;
 	private OrthographicCamera mLeftCamera;
 	private OrthographicCamera mRightCamera;
 	private OrthographicCamera mHUDCamera;
@@ -48,19 +45,22 @@ public class World implements Disposable{
 	private float mOffset;
 	private float mSecondsSincePlay;
 	private boolean mResetRequested;
+	private boolean mPlaying;
 	
-	World(){
+	World(Game game){
+		mGame = game;
 		init();
 	}
 	
 	private void init(){
 		
-		mController = new PlayerController(this);
+		mController = new PlayerController(mGame, this);
 		mTimingToDisplay = Timing.NONE;
 		mBatch = new SpriteBatch();
 		mScoreManager = new ScoreManager();
 		mResetRequested = false;
 		mSecondsSincePlay = 0.f;
+		mPlaying = false;
 		
 		//Configure cameras
 		float w = Gdx.graphics.getWidth();
@@ -146,126 +146,69 @@ public class World implements Disposable{
 			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
 			outline.velocity.x = mLeftNoteSpeed;
+		if (mOffset < 0)
+			AudioManager.instance.setVolume(0.0f);
 		
-		//Adjust camera for song offset
-		mRightCamera.translate(-mRightNoteSpeed * mOffset, 0);
-		mRightCamera.update();
-		mLeftCamera.translate(mLeftNoteSpeed * mOffset, 0);
-		mLeftCamera.update();
-		for(OutlineNote outline : mLeftOutlines)
-			outline.update(mOffset);
-		for(OutlineNote outline : mRightOutlines)
-			outline.update(mOffset);
-			
-		AudioManager.instance.play(Assets.instance.music.paperPlanes);
-	}
-	
-	public void requestReset(){
-		mResetRequested = true;
-	}
-	
-	private void reset(){
-		
-		AudioManager.instance.stopMusic();
-		mTimingToDisplay = Timing.NONE;
-		mScoreManager = new ScoreManager();
-		mResetRequested = false;
-		mSecondsSincePlay = 0.f;
-		
-		//Reset cameras
-		mLeftCamera.position.set(0, 0, 0);
-		mRightCamera.position.set(0, 0, 0);
-		mHUDCamera.position.set(0, 0, 0);
-		mLeftCamera.update();
-		mRightCamera.update();
-		mHUDCamera.update();
-		
-		//Parse tracks
-		mLeftNotes = new ArrayList<Note>();
-		MapLayer noteLayer =  mLeftMap.getLayers().get(0);
-		MapObjects notes = noteLayer.getObjects();
-		
-		for(MapObject note : notes)		
-			mLeftNotes.add(NoteFactory.createNote(note, mLeftMap, mScoreManager, true));
-		
-		mRightNotes = new ArrayList<Note>();
-		noteLayer = mRightMap.getLayers().get(0);
-		notes = noteLayer.getObjects();
-		
-		for(MapObject note : notes)
-			mRightNotes.add(NoteFactory.createNote(note, mRightMap, mScoreManager, false));
-		
-		ArrayList<Note> allNotes = new ArrayList<Note>();
-		allNotes.addAll(mLeftNotes);
-		allNotes.addAll(mRightNotes);
-		mScoreManager.setMaxScore(allNotes);
-			
-		//Sort by beat. Mostly used for efficient collision checking by
-		//iterating through the first few beats, rather than all of the notes
-		Collections.sort(mLeftNotes, new NoteComparator());
-		Collections.sort(mRightNotes, new NoteComparator());
-		
-		//Parse BPM markers
-		mLeftMarkers = new ArrayList<BPMMarker>();
-		if (mLeftMap.getLayers().getCount() > 1){
-			MapLayer markerLayer = mLeftMap.getLayers().get(1);
-			MapObjects markers = markerLayer.getObjects();
-			
-			for(MapObject marker : markers){
-				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap, true));
-			}
-		}
-		
-		mRightMarkers = new ArrayList<BPMMarker>();
-		MapLayers layers = mRightMap.getLayers();
-		int count = layers.getCount();
-		if (mRightMap.getLayers().getCount() > 1){
-			MapLayer markerLayer = mRightMap.getLayers().get(1);
-			MapObjects markers = markerLayer.getObjects();
-			
-			for(MapObject marker : markers){
-				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap, false));
-			}
-		}
-		
-		//Create note outlines for hit detection
-		mLeftOutlines = new OutlineNote[]{
-				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
-				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
-				new OutlineNote(NoteSlot.BOTTOM_LEFT, mScoreManager)
-		};
-		mRightOutlines = new OutlineNote[]{
-				new OutlineNote(NoteSlot.TOP_RIGHT, mScoreManager),
-				new OutlineNote(NoteSlot.MIDDLE_RIGHT, mScoreManager),
-				new OutlineNote(NoteSlot.BOTTOM_RIGHT, mScoreManager)
-		};
-
-		//Reset note speed in case of BPM markers
-		mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		//Pixels per measure times measures per second
-		mLeftNoteSpeed = mRightNoteSpeed = mMeasureWidthPixels * (mBPM / 4.f) / 60.f;
-		for(Note outline : mRightOutlines)
-			outline.velocity.x = -mRightNoteSpeed;
-		for(Note outline : mLeftOutlines)
-			outline.velocity.x = mLeftNoteSpeed;
-		
-		float songOffset = mOffset - Constants.GLOBAL_OFFSET;
-		float netOffset = mOffset + songOffset;
-		//Adjust camera for song offset
-		mRightCamera.translate(-mRightNoteSpeed * netOffset, 0);
-		mRightCamera.update();
-		mLeftCamera.translate(mLeftNoteSpeed * netOffset, 0);
-		mLeftCamera.update();
-		for(OutlineNote outline : mLeftOutlines)
-			outline.update(netOffset);
-		for(OutlineNote outline : mRightOutlines)
-			outline.update(netOffset);
-				
 		AudioManager.instance.play(Assets.instance.music.paperPlanes);
 	}
 	
 	public void update(float deltaTime){
-
+		
+		checkMarkerCollisions(deltaTime);
+		handleInput(deltaTime);
+		float pos = AudioManager.instance.getPosition();
+		float diffSeconds = Math.abs(Math.abs(mOffset) - Math.abs(pos));
+		
+		if (mOffset < 0 && !mPlaying){		
+			//Overshot the offset by over 1/60 of a second
+			if (diffSeconds > (1 / 60.f) && pos > -mOffset){
+				float secondsOverOffset = pos - (-mOffset);
+				updateSong(secondsOverOffset);
+				AudioManager.instance.setVolume(100.f);
+				AudioManager.instance.play(Assets.instance.music.paperPlanes);
+				mPlaying = true;
+				return;
+			}
+			//Not at the offset yet
+			else if (diffSeconds > (1 / 60.f)){
+				updateSong(deltaTime);
+				return;
+			}
+			//Song is within the offset threshold
+			else{
+				AudioManager.instance.setVolume(100.f);
+				AudioManager.instance.play(Assets.instance.music.paperPlanes);
+				mPlaying = true;
+				updateSong(diffSeconds);
+				return;
+			}
+		}
+		else if (!mPlaying){
+			//Overshot the offset by over 1/60 of a second
+			if (diffSeconds > (1 / 60.f) && pos > mOffset){
+				float secondsOverOffset = pos - mOffset;
+				updateSong(-secondsOverOffset);
+				mPlaying = true;
+				return;
+			}
+			//Not at the offset yet
+			else if (diffSeconds > (1 / 60.f))
+				return;
+			//Song is within the offset threshold
+			else{
+				mPlaying = true;
+				float secondsOverOffset = pos - mOffset;
+				updateSong(-secondsOverOffset);
+				return;
+			}	
+		}
+		else{
+			updateSong(deltaTime);
+		}
+		
+	}
+	
+	private void updateSong(float deltaTime){
 		mRightCamera.translate(-mRightNoteSpeed * deltaTime, 0);
 		mRightCamera.update();
 		mLeftCamera.translate(mLeftNoteSpeed * deltaTime, 0);
@@ -277,14 +220,8 @@ public class World implements Disposable{
 		for(Note note : mLeftNotes)
 			note.update(deltaTime);
 		for(Note note : mRightNotes)
-			note.update(deltaTime);
-		checkMarkerCollisions(deltaTime);
-		handleInput(deltaTime);
+			note.update(deltaTime);	
 		cleanUpObjects();	
-		if (mResetRequested){
-			AudioManager.instance.stopMusic();
-			reset();
-		}
 	}
 	
 	public void handleInput(float deltaTime){
@@ -292,7 +229,6 @@ public class World implements Disposable{
 	}
 	
 	public void render(){
-		
 		update(Gdx.graphics.getDeltaTime());
 		renderWorld();
 		renderHUD();
@@ -634,5 +570,9 @@ public class World implements Disposable{
 	public void dispose() {
 		AudioManager.instance.stopMusic();
 		mBatch.dispose();		
+	}
+	
+	public void backToMenu(){
+		mGame.setScreen((new MenuScreen(mGame)));
 	}
 }

@@ -1,0 +1,103 @@
+
+split-beat-game.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+Magic_button_blue
+  rotate: false
+  xy: 1, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+Magic_button_green
+  rotate: false
+  xy: 1, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+Magic_button_grey
+  rotate: false
+  xy: 103, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+Magic_button_orange
+  rotate: false
+  xy: 103, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+Magic_button_red
+  rotate: false
+  xy: 205, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+Magic_button_yellow
+  rotate: false
+  xy: 205, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hit_background
+  rotate: false
+  xy: 307, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hit_overlay
+  rotate: false
+  xy: 307, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_background
+  rotate: false
+  xy: 409, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_middle_background
+  rotate: false
+  xy: 409, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_middle_overlay
+  rotate: false
+  xy: 511, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_overlay
+  rotate: false
+  xy: 511, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_start_background
+  rotate: false
+  xy: 613, 103
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+hold_start_overlay
+  rotate: false
+  xy: 613, 1
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1

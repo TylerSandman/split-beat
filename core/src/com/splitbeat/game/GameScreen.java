@@ -17,7 +17,7 @@ public class GameScreen extends AbstractGameScreen {
 	@Override
 	public void render(float delta) {
 		if (!mPaused)
-			mWorld.update(Gdx.graphics.getDeltaTime());
+			mWorld.update(delta);
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		mWorld.render();
@@ -30,7 +30,7 @@ public class GameScreen extends AbstractGameScreen {
 
 	@Override
 	public void show() {
-		mWorld = new World();
+		mWorld = new World(game);
 		Gdx.input.setCatchBackKey(true);
 	}
 

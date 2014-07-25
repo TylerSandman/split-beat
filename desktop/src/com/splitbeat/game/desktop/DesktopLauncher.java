@@ -16,6 +16,7 @@ public class DesktopLauncher {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
 		config.width = 1900;
 		config.height = 1200;
+		config.foregroundFPS = 60;
 		config.resizable = false;
 		
 		if (rebuildAtlas){
@@ -23,8 +24,8 @@ public class DesktopLauncher {
 			settings.maxWidth = 1024;
 			settings.maxHeight = 1024;
 			settings.debug = drawDebugOutline;
-			TexturePacker2.process(settings, "assets-raw/images/480x320", "../android/assets/images/480x320", "split-beat.pack");
-			TexturePacker2.process(settings, "assets-raw/images/960x720", "../android/assets/images/960x720", "split-beat.pack");
+			TexturePacker2.process(settings, "assets-raw/images/game", "../android/assets/images/game", "split-beat-game.pack");
+			TexturePacker2.process(settings, "assets-raw/images/gui", "../android/assets/images/gui", "split-beat-gui.pack");
 		}
 		
 		new LwjglApplication(new SplitBeatGame(), config);

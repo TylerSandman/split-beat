@@ -8,8 +8,13 @@ public class AudioManager {
 	public static final AudioManager instance = new AudioManager();
 	
 	private Music mPlayingMusic;
+	private float mVolume;
 	
 	private AudioManager(){}
+	
+	public void init(){
+		mVolume = 100.f;
+	}
 	
 	public void play(Sound sound){
 		play(sound, 1);
@@ -31,11 +36,24 @@ public class AudioManager {
 		stopMusic();
 		mPlayingMusic = music;
 		mPlayingMusic.setLooping(true);
+		mPlayingMusic.setVolume(mVolume);
 		mPlayingMusic.play();
 	}
 	
 	public void stopMusic(){
 		if (mPlayingMusic != null)
 			mPlayingMusic.stop();
+	}
+	
+	public float getPosition(){
+		if (mPlayingMusic == null)
+			return 0.f;
+		return mPlayingMusic.getPosition();
+	}
+	
+	public void setVolume(float volume){
+		mVolume = volume;
+		if (mPlayingMusic != null)
+			mPlayingMusic.setVolume(mVolume);
 	}
 }

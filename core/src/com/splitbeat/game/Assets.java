@@ -29,10 +29,10 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	public void init (AssetManager assetManager){
 		
-		Resolution smallRes = new Resolution(320, 480, "480x320");
-		Resolution largeRes = new Resolution(760, 920, "960x720");
-		Resolution[] resolutions = new Resolution[]{ smallRes, largeRes };
-		ResolutionFileResolver resolver = new ResolutionFileResolver(new InternalFileHandleResolver(), resolutions);
+		//Resolution smallRes = new Resolution(320, 480, "480x320");
+		//Resolution largeRes = new Resolution(760, 920, "960x720");
+		//Resolution[] resolutions = new Resolution[]{ smallRes, largeRes };
+		//ResolutionFileResolver resolver = new ResolutionFileResolver(new InternalFileHandleResolver(), resolutions);
 		
 		mAssetManager = assetManager;
 		mAssetManager.setErrorListener(this);	
@@ -44,8 +44,8 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.finishLoading();
 		
 		//Load button textures;
-		mAssetManager.setLoader(TextureAtlas.class, new TextureAtlasLoader(resolver));
-		mAssetManager.load(Constants.TEXTURE_ATLAS_BUTTONS, TextureAtlas.class);
+		mAssetManager.setLoader(TextureAtlas.class, new TextureAtlasLoader(new InternalFileHandleResolver()));
+		mAssetManager.load(Constants.TEXTURE_ATLAS_NOTES, TextureAtlas.class);
 		mAssetManager.finishLoading();
 		
 		//Load music
@@ -53,7 +53,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.finishLoading();
 		
 		//Initialize assets
-		TextureAtlas atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_BUTTONS);	
+		TextureAtlas atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_NOTES);	
 		button = new AssetButton(atlas);
 		maps = new AssetMap(mAssetManager);
 		music = new AssetMusic(mAssetManager);
@@ -70,6 +70,7 @@ public class Assets implements Disposable, AssetErrorListener{
 	public void dispose() {	
 		mAssetManager.dispose();
 		fonts.defaultFont.dispose();
+		music.paperPlanes.dispose();
 	}
 	
 	public class AssetButton{

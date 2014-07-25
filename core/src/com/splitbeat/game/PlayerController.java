@@ -1,18 +1,20 @@
 package com.splitbeat.game;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.splitbeat.game.Constants.NoteSlot;
 
 public class PlayerController extends InputAdapter {
 	
 	private World mWorld;
+	private Game mGame;
 	public CameraHelper cameraHelper;
 	
-	PlayerController(World world){
+	PlayerController(Game game, World world){
+		mGame = game;
 		mWorld = world;
 		cameraHelper = new CameraHelper();
 		init();
@@ -44,7 +46,7 @@ public class PlayerController extends InputAdapter {
 			mWorld.pressSlot(NoteSlot.BOTTOM_LEFT);
 			break;
 		case(Input.Keys.R):
-			mWorld.requestReset();
+			mWorld.backToMenu();
 		}
 		return false;
 	}

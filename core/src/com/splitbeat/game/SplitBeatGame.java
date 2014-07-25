@@ -8,6 +8,13 @@ public class SplitBeatGame extends Game {
 	@Override
 	public void create(){
 		Assets.instance.init(new AssetManager());
+		AudioManager.instance.init();
 		setScreen(new GameScreen(this));
+		setScreen(new MenuScreen(this));
+	}
+	
+	@Override
+	public void dispose(){
+		Assets.instance.dispose();
 	}
 }
