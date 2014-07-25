@@ -83,7 +83,7 @@ public class Constants {
 	public static final int DROP_POINTS = 0;
 	
 	//Conversion and measurement constants
-	public static final int MEASURE_WIDTH_NOTES = 8;
+	public static final int MEASURE_WIDTH_NOTES = 4;
 	public static final float GLOW_ANIMATION_TIME = 0.15f;
 	public static final float OUTLINE_PRESS_ANIMATION_TIME = 0.15f;
 }

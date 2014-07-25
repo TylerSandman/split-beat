@@ -141,7 +141,7 @@ public class World implements Disposable{
 		//Calculate scroll speed
 		mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
 		//Pixels per measure times measures per second
-		mLeftNoteSpeed = mRightNoteSpeed = mMeasureWidthPixels * (mBPM / 4.f) / 60.f;
+		mLeftNoteSpeed = mRightNoteSpeed = mMeasureWidthPixels * mBPM / 60.f;
 		for(Note outline : mRightOutlines)
 			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
@@ -229,7 +229,6 @@ public class World implements Disposable{
 	}
 	
 	public void render(){
-		update(Gdx.graphics.getDeltaTime());
 		renderWorld();
 		renderHUD();
 	}
@@ -476,7 +475,7 @@ public class World implements Disposable{
 			//Calculate scroll speed
 			mMeasureWidthPixels = mLeftOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
 			//Apply BPM change
-			mLeftNoteSpeed = mMeasureWidthPixels * (newBPM / 4.f) / 60.f;
+			mLeftNoteSpeed = mMeasureWidthPixels * newBPM / 60.f;
 			for(OutlineNote outline : mLeftOutlines)
 				outline.velocity.x = mLeftNoteSpeed;
 			mLeftMarkers.remove(0);
@@ -497,7 +496,7 @@ public class World implements Disposable{
 			//Calculate scroll speed
 			mMeasureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
 			//Apply BPM change
-			mRightNoteSpeed = mMeasureWidthPixels * (newBPM / 4.f) / 60.f;
+			mRightNoteSpeed = mMeasureWidthPixels * newBPM / 60.f;
 			for(OutlineNote outline : mRightOutlines)
 				outline.velocity.x = -mRightNoteSpeed;
 			mRightMarkers.remove(0);

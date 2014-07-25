@@ -37,7 +37,7 @@ public class HoldNote extends Note {
 		float secondsPerBeat = 1.f / (mBPM / 60.f);
 		mHoldDurationSeconds = mHoldDurationBeats * secondsPerBeat;
 		float measureWidthPixels = mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES;
-		mNoteSpeed = measureWidthPixels * (mBPM / 4.f) / 60.f;
+		mNoteSpeed = measureWidthPixels * mBPM / 60.f;
 		mHoldDurationSeconds += mSprite.getWidth() / 2.f / mNoteSpeed;
 		mHolding = false;
 		mLeftTrack = false;
@@ -80,11 +80,11 @@ public class HoldNote extends Note {
 		}
 		else{
 			mDrawPosition = new Vector2(
-					mSprite.getX() - mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES * (mHoldDurationBeats / 4.f),
+					mSprite.getX() - mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES * mHoldDurationBeats,
 					mSprite.getY());			
 		}
 		mDrawSize = new Vector2(
-				(mHoldDurationBeats / 4.f) * mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES + mSprite.getWidth() / 2.f,
+				mHoldDurationBeats * mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES + mSprite.getWidth() / 2.f,
 				mHoldBackground.getRegionHeight());
 		
 		switch(type){
