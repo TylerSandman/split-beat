@@ -230,7 +230,7 @@ public class MenuScreen extends AbstractGameScreen {
 	}
 	
 	private void onSyncClicked(){
-		return;
+		game.setScreen(new SyncGameScreen(game));
 	}
 	
 	private void onOptionsClicked(){

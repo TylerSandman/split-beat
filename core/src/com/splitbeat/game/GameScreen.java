@@ -6,8 +6,8 @@ import com.badlogic.gdx.graphics.GL20;
 
 public class GameScreen extends AbstractGameScreen {
 	
-	private boolean mPaused;
-	private World mWorld;
+	protected boolean mPaused;
+	protected World mWorld;
 	
 	GameScreen(Game game){
 		super(game);

@@ -72,6 +72,7 @@ public class Constants {
 	public static final float HOLD_WINDOW = 0.1f;
 	public static final float NO_WINDOW = -1f;
 	public static final float GLOBAL_OFFSET = -0.12f;
+	public static final float SYNC_BPM = 120.f;
 	
 	//Timing window point system
 	public static final int FLAWLESS_POINTS = 5;

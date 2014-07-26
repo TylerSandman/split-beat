@@ -43,8 +43,6 @@ public class World implements Disposable{
 	private float mLeftNoteSpeed;	
 	private float mRightNoteSpeed;
 	private float mOffset;
-	private float mSecondsSincePlay;
-	private boolean mResetRequested;
 	private boolean mPlaying;
 	
 	World(Game game){
@@ -58,8 +56,6 @@ public class World implements Disposable{
 		mTimingToDisplay = Timing.NONE;
 		mBatch = new SpriteBatch();
 		mScoreManager = new ScoreManager();
-		mResetRequested = false;
-		mSecondsSincePlay = 0.f;
 		mPlaying = false;
 		
 		//Configure cameras
@@ -145,14 +141,19 @@ public class World implements Disposable{
 		for(Note outline : mRightOutlines)
 			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
-			outline.velocity.x = mLeftNoteSpeed;
-		if (mOffset < 0)
-			AudioManager.instance.setVolume(0.0f);
+			outline.velocity.x = mLeftNoteSpeed;	
+		initMusic();
 		
+	}
+	
+	protected void initMusic(){
+		
+		if (mOffset < 0)
+			AudioManager.instance.setVolume(0.0f);	
 		AudioManager.instance.play(Assets.instance.music.paperPlanes);
 	}
 	
-	public void update(float deltaTime){
+	protected void update(float deltaTime){
 		
 		checkMarkerCollisions(deltaTime);
 		handleInput(deltaTime);
@@ -208,7 +209,7 @@ public class World implements Disposable{
 		
 	}
 	
-	private void updateSong(float deltaTime){
+	protected void updateSong(float deltaTime){
 		mRightCamera.translate(-mRightNoteSpeed * deltaTime, 0);
 		mRightCamera.update();
 		mLeftCamera.translate(mLeftNoteSpeed * deltaTime, 0);

@@ -6,9 +6,8 @@ import com.badlogic.gdx.assets.AssetErrorListener;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureAtlasLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
-import com.badlogic.gdx.assets.loaders.resolvers.ResolutionFileResolver;
-import com.badlogic.gdx.assets.loaders.resolvers.ResolutionFileResolver.Resolution;
 import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -23,6 +22,7 @@ public class Assets implements Disposable, AssetErrorListener{
 	public AssetButton button;
 	public AssetMap maps;
 	public AssetMusic music;
+	public AssetSounds sounds;
 	public AssetFonts fonts;
 	
 	private Assets(){}
@@ -52,11 +52,16 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.load("music/paper_planes.ogg", Music.class);
 		mAssetManager.finishLoading();
 		
+		//Load sound
+		mAssetManager.load("sound/sync_click.ogg", Sound.class);
+		mAssetManager.finishLoading();
+		
 		//Initialize assets
 		TextureAtlas atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_NOTES);	
 		button = new AssetButton(atlas);
 		maps = new AssetMap(mAssetManager);
 		music = new AssetMusic(mAssetManager);
+		sounds = new AssetSounds(mAssetManager);
 		fonts = new AssetFonts();
 		
 	}
@@ -107,6 +112,14 @@ public class Assets implements Disposable, AssetErrorListener{
 		AssetMusic(AssetManager am){
 			paperPlanes = am.get("music/paper_planes.ogg", Music.class);
 		}	
+	}
+	
+	public class AssetSounds{
+		
+		public final Sound syncClick;
+		AssetSounds(AssetManager am){
+			syncClick = am.get("sound/sync_click.ogg", Sound.class);
+		}
 	}
 	
 	public class AssetMap{
