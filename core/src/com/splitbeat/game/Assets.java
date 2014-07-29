@@ -1,5 +1,7 @@
 package com.splitbeat.game;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetErrorListener;
@@ -41,6 +43,8 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
 		mAssetManager.load(Constants.LEFT_MAPS[0], TiledMap.class);
 		mAssetManager.load(Constants.RIGHT_MAPS[0], TiledMap.class);
+		mAssetManager.load(Constants.LEFT_MAPS[1], TiledMap.class);
+		mAssetManager.load(Constants.RIGHT_MAPS[1], TiledMap.class);
 		mAssetManager.finishLoading();
 		
 		//Load button textures;
@@ -50,6 +54,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		//Load music
 		mAssetManager.load("music/paper_planes.ogg", Music.class);
+		mAssetManager.load("music/sync.ogg", Music.class);
 		mAssetManager.finishLoading();
 		
 		//Load sound
@@ -109,8 +114,10 @@ public class Assets implements Disposable, AssetErrorListener{
 	public class AssetMusic{
 		
 		public final Music paperPlanes;
+		public final Music sync;
 		AssetMusic(AssetManager am){
 			paperPlanes = am.get("music/paper_planes.ogg", Music.class);
+			sync = am.get("music/sync.ogg", Music.class);
 		}	
 	}
 	
@@ -124,11 +131,15 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	public class AssetMap{
 		
-		public final TiledMap left;
-		public final TiledMap right;
+		public final HashMap<String, TiledMap> leftMaps;
+		public final HashMap<String, TiledMap> rightMaps;
 		AssetMap(AssetManager am){
-			left = am.get(Constants.LEFT_MAPS[0]);
-			right = am.get(Constants.RIGHT_MAPS[0]);
+			leftMaps = new HashMap<String, TiledMap>();
+			rightMaps = new HashMap<String, TiledMap>();
+			leftMaps.put(Constants.LEFT_MAPS[0], am.get(Constants.LEFT_MAPS[0], TiledMap.class));
+			rightMaps.put(Constants.RIGHT_MAPS[0], am.get(Constants.RIGHT_MAPS[0], TiledMap.class));
+			leftMaps.put(Constants.LEFT_MAPS[1], am.get(Constants.LEFT_MAPS[1], TiledMap.class));
+			rightMaps.put(Constants.RIGHT_MAPS[1], am.get(Constants.RIGHT_MAPS[1], TiledMap.class));
 		}
 	}
 	

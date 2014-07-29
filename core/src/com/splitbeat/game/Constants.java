@@ -50,12 +50,15 @@ public class Constants {
 	}
 	
 	public static final String[] LEFT_MAPS = new String[]{
-		"maps/testEasyLeft.tmx"
+		"maps/testEasyLeft.tmx",
+		"maps/syncLeft.tmx"
 	};
 	
 	public static final String[] RIGHT_MAPS = new String[]{
-		"maps/testEasy.tmx"
+		"maps/testEasy.tmx",
+		"maps/sync.tmx"
 	};
+	
 	
 	//Tiled spritesheet GIDs
 	public static final int RED_ID = 8;
@@ -71,7 +74,7 @@ public class Constants {
 	public static final float FLAWLESS_WINDOW = 0.0200f;
 	public static final float HOLD_WINDOW = 0.1f;
 	public static final float NO_WINDOW = -1f;
-	public static final float GLOBAL_OFFSET = -0.12f;
+	public static final float GLOBAL_OFFSET = 0.f;
 	public static final float SYNC_BPM = 120.f;
 	
 	//Timing window point system

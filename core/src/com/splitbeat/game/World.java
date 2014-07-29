@@ -45,12 +45,12 @@ public class World implements Disposable{
 	private float mOffset;
 	private boolean mPlaying;
 	
-	World(Game game){
+	World(Game game, int songIndex){
 		mGame = game;
-		init();
+		init(songIndex);
 	}
 	
-	private void init(){
+	private void init(int songIndex){
 		
 		mController = new PlayerController(mGame, this);
 		mTimingToDisplay = Timing.NONE;
@@ -68,8 +68,8 @@ public class World implements Disposable{
 		mHUDCamera.update();
 		
 		//Parse Song information
-		mLeftMap = Assets.instance.maps.left;
-		mRightMap = Assets.instance.maps.right;
+		mLeftMap = Assets.instance.maps.leftMaps.get(Constants.LEFT_MAPS[songIndex]);
+		mRightMap = Assets.instance.maps.rightMaps.get(Constants.RIGHT_MAPS[songIndex]);
 		String bpmStr= mLeftMap.getProperties().get("bpm", String.class);
 		mBPM = (float) Double.parseDouble(bpmStr);
 		String offsetStr = mLeftMap.getProperties().get("offset", String.class);
@@ -142,14 +142,13 @@ public class World implements Disposable{
 			outline.velocity.x = -mRightNoteSpeed;
 		for(Note outline : mLeftOutlines)
 			outline.velocity.x = mLeftNoteSpeed;	
+		if (mOffset < 0)
+			AudioManager.instance.setVolume(0.0f);	
 		initMusic();
 		
 	}
 	
-	protected void initMusic(){
-		
-		if (mOffset < 0)
-			AudioManager.instance.setVolume(0.0f);	
+	protected void initMusic(){			
 		AudioManager.instance.play(Assets.instance.music.paperPlanes);
 	}
 	
@@ -166,7 +165,7 @@ public class World implements Disposable{
 				float secondsOverOffset = pos - (-mOffset);
 				updateSong(secondsOverOffset);
 				AudioManager.instance.setVolume(100.f);
-				AudioManager.instance.play(Assets.instance.music.paperPlanes);
+				initMusic();
 				mPlaying = true;
 				return;
 			}
@@ -178,7 +177,7 @@ public class World implements Disposable{
 			//Song is within the offset threshold
 			else{
 				AudioManager.instance.setVolume(100.f);
-				AudioManager.instance.play(Assets.instance.music.paperPlanes);
+				initMusic();
 				mPlaying = true;
 				updateSong(diffSeconds);
 				return;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="1000" height="3" tilewidth="40" tileheight="40">
+ <properties>
+  <property name="bpm" value="120"/>
+  <property name="offset" value="-0.25"/>
+ </properties>
+ <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
+  <image source="split-beat-tileset.png" width="256" height="128"/>
+ </tileset>
+ <objectgroup name="Notes" width="1000" height="3"/>
+ <objectgroup name="Markers" width="1000" height="3"/>
+</map>

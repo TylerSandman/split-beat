@@ -35,7 +35,7 @@ public class AudioManager {
 	public void play(Music music){
 		stopMusic();
 		mPlayingMusic = music;
-		mPlayingMusic.setLooping(true);
+		mPlayingMusic.setLooping(false);
 		mPlayingMusic.setVolume(mVolume);
 		mPlayingMusic.play();
 	}

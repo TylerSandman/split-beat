@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="1000" height="3" tilewidth="40" tileheight="40">
+ <properties>
+  <property name="bpm" value="120"/>
+  <property name="offset" value="-0.25"/>
+ </properties>
+ <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
+  <image source="split-beat-tileset.png" width="256" height="128"/>
+ </tileset>
+ <objectgroup name="Notes" width="1000" height="3">
+  <object gid="8" x="39800" y="80"/>
+  <object gid="8" x="39640" y="80"/>
+  <object gid="8" x="39480" y="80"/>
+  <object gid="8" x="39320" y="80"/>
+  <object gid="8" x="39160" y="80"/>
+  <object gid="8" x="39000" y="80"/>
+  <object gid="8" x="38840" y="80"/>
+  <object gid="8" x="38680" y="80"/>
+  <object gid="8" x="38520" y="80"/>
+  <object gid="8" x="38360" y="80"/>
+  <object gid="8" x="38200" y="80"/>
+  <object gid="8" x="38040" y="80"/>
+  <object gid="8" x="37880" y="80"/>
+  <object gid="8" x="37720" y="80"/>
+  <object gid="8" x="37560" y="80"/>
+  <object gid="8" x="37400" y="80"/>
+  <object gid="8" x="37240" y="80"/>
+  <object gid="8" x="37080" y="80"/>
+  <object gid="8" x="36920" y="80"/>
+  <object gid="8" x="36760" y="80"/>
+  <object gid="8" x="36600" y="80"/>
+  <object gid="8" x="36440" y="80"/>
+  <object gid="8" x="36280" y="80"/>
+  <object gid="8" x="36120" y="80"/>
+  <object gid="8" x="35960" y="80"/>
+  <object gid="8" x="35800" y="80"/>
+  <object gid="8" x="35640" y="80"/>
+  <object gid="8" x="35480" y="80"/>
+  <object gid="8" x="35320" y="80"/>
+  <object gid="8" x="35160" y="80"/>
+  <object gid="8" x="35000" y="80"/>
+  <object gid="8" x="34840" y="80"/>
+  <object gid="8" x="34680" y="80"/>
+  <object gid="8" x="34520" y="80"/>
+  <object gid="8" x="34360" y="80"/>
+  <object gid="8" x="34200" y="80"/>
+  <object gid="8" x="34040" y="80"/>
+  <object gid="8" x="33880" y="80"/>
+  <object gid="8" x="33720" y="80"/>
+  <object gid="8" x="33560" y="80"/>
+  <object gid="8" x="33400" y="80"/>
+  <object gid="8" x="33240" y="80"/>
+  <object gid="8" x="33080" y="80"/>
+  <object gid="8" x="32920" y="80"/>
+  <object gid="8" x="32760" y="80"/>
+  <object gid="8" x="32600" y="80"/>
+  <object gid="8" x="32440" y="80"/>
+  <object gid="8" x="32280" y="80"/>
+  <object gid="8" x="32120" y="80"/>
+  <object gid="8" x="31960" y="80"/>
+  <object gid="8" x="31800" y="80"/>
+  <object gid="8" x="31640" y="80"/>
+  <object gid="8" x="31480" y="80"/>
+  <object gid="8" x="31320" y="80"/>
+  <object gid="8" x="31160" y="80"/>
+  <object gid="8" x="31000" y="80"/>
+  <object gid="8" x="30840" y="80"/>
+  <object gid="8" x="30680" y="80"/>
+  <object gid="8" x="30520" y="80"/>
+  <object gid="8" x="30360" y="80"/>
+  <object gid="8" x="30200" y="80"/>
+  <object gid="8" x="30040" y="80"/>
+  <object gid="8" x="29880" y="80"/>
+  <object gid="8" x="29720" y="80"/>
+ </objectgroup>
+ <objectgroup name="Markers" width="1000" height="3"/>
+</map>
