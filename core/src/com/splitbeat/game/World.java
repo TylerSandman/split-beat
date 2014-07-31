@@ -21,22 +21,23 @@ import com.splitbeat.game.Constants.Timing;
 
 public class World implements Disposable{
 	
-	private Game mGame;
-	private OrthographicCamera mLeftCamera;
-	private OrthographicCamera mRightCamera;
-	private OrthographicCamera mHUDCamera;
-	private SpriteBatch mBatch;
+	protected ArrayList<BPMMarker> mLeftMarkers;
+	protected ArrayList<BPMMarker> mRightMarkers;
+	protected ArrayList<Note> mLeftNotes;
+	protected ArrayList<Note> mRightNotes;
+	protected OutlineNote[] mLeftOutlines;
+	protected OutlineNote[] mRightOutlines;
+	protected Timing mTimingToDisplay;
+	protected OrthographicCamera mLeftCamera;
+	protected OrthographicCamera mRightCamera;
+	protected OrthographicCamera mHUDCamera;
+	protected Game mGame;
+	protected SpriteBatch mBatch;
+	
 	private PlayerController mController;
 	private ScoreManager mScoreManager;
 	private TiledMap mLeftMap;
 	private TiledMap mRightMap;
-	private ArrayList<BPMMarker> mLeftMarkers;
-	private ArrayList<BPMMarker> mRightMarkers;
-	private ArrayList<Note> mLeftNotes;
-	private ArrayList<Note> mRightNotes;
-	private OutlineNote[] mLeftOutlines;
-	private OutlineNote[] mRightOutlines;
-	private Timing mTimingToDisplay;
 	
 	private float mBPM;
 	private float mMeasureWidthPixels;
@@ -233,13 +234,13 @@ public class World implements Disposable{
 		renderHUD();
 	}
 	
-	private void renderWorld(){
+	protected void renderWorld(){
 		
 		renderLeftWorld();
 		renderRightWorld();
 	}
 	
-	private void renderLeftWorld(){
+	protected void renderLeftWorld(){
 		
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth () / 2, Gdx.graphics.getHeight());
 		mBatch.setProjectionMatrix(mLeftCamera.combined);
@@ -249,7 +250,7 @@ public class World implements Disposable{
 		mBatch.end();
 	}
 	
-	private void renderRightWorld(){
+	protected void renderRightWorld(){
 		
 		Gdx.gl.glViewport(Gdx.graphics.getWidth () / 2, 0, Gdx.graphics.getWidth () / 2, Gdx.graphics.getHeight());
 		mBatch.setProjectionMatrix(mRightCamera.combined);
@@ -259,7 +260,7 @@ public class World implements Disposable{
 		mBatch.end();
 	}
 	
-	private void renderLeftNotes(){
+	protected void renderLeftNotes(){
 		
 		float cameraBorder = mLeftCamera.position.x + mLeftCamera.viewportWidth / 2 + mMeasureWidthPixels;
 		for(Note note : mLeftNotes){
@@ -269,7 +270,7 @@ public class World implements Disposable{
 		}
 	}
 	
-	private void renderRightNotes(){
+	protected void renderRightNotes(){
 		
 		float cameraBorder = mRightCamera.position.x - mRightCamera.viewportWidth / 2 - mMeasureWidthPixels;
 		for(Note note : mRightNotes){
@@ -279,17 +280,17 @@ public class World implements Disposable{
 		}
 	}
 	
-	private void renderLeftOutlines(){
+	protected void renderLeftOutlines(){
 		for(OutlineNote outline : mLeftOutlines)
 			outline.render(mBatch);	
 	}
 	
-	private void renderRightOutlines(){
+	protected void renderRightOutlines(){
 		for(OutlineNote outline : mRightOutlines)
 			outline.render(mBatch);	
 	}
 	
-	private void renderHUD(){
+	protected void renderHUD(){
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mBatch.setProjectionMatrix(mHUDCamera.combined);
 		mBatch.begin();
@@ -299,7 +300,7 @@ public class World implements Disposable{
 		mBatch.end();
 	}
 	
-	private void renderTiming(){
+	protected void renderTiming(){
 		
 		String timingStr = "";
 		if (mTimingToDisplay == Timing.MISS)
@@ -323,7 +324,7 @@ public class World implements Disposable{
 				0, BitmapFont.HAlignment.CENTER);
 	}
 	
-	private void renderCombo(){
+	protected void renderCombo(){
 		int combo = mScoreManager.getCurrentCombo();
 		if (combo < 5) return;
 		String comboStr = Integer.toString(combo);
@@ -333,7 +334,7 @@ public class World implements Disposable{
 				0, BitmapFont.HAlignment.CENTER);
 	}
 	
-	private void renderScore(){
+	protected void renderScore(){
 		
 		float percentScore = mScoreManager.getPercentageScore();
 		String scoreStr = String.format("%.2f", percentScore);
