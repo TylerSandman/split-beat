@@ -25,12 +25,17 @@ public class SyncWorld extends World {
 		mNoteTimings = new float[Constants.NUM_SYNC_CALCULATION_BEATS];
 		
 		mTimingIndex = 0;
-		mCalculatedOffset = Constants.GLOBAL_OFFSET;
+		mCalculatedOffset = Options.instance.offset;
 	}
 	
 	@Override
 	protected void initMusic(){
 		AudioManager.instance.play(Assets.instance.music.sync);
+	}
+	
+	@Override
+	protected void onSongEnd(){
+		Options.instance.setOffset(mCalculatedOffset);
 	}
 	
 	@Override

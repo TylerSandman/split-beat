@@ -38,13 +38,14 @@ public class World implements Disposable{
 	private ScoreManager mScoreManager;
 	private TiledMap mLeftMap;
 	private TiledMap mRightMap;
+	protected boolean mPlaying;
 	
 	private float mBPM;
 	private float mMeasureWidthPixels;
 	private float mLeftNoteSpeed;	
 	private float mRightNoteSpeed;
 	private float mOffset;
-	private boolean mPlaying;
+	
 	
 	World(Game game, int songIndex){
 		mGame = game;
@@ -75,7 +76,7 @@ public class World implements Disposable{
 		mBPM = (float) Double.parseDouble(bpmStr);
 		String offsetStr = mLeftMap.getProperties().get("offset", String.class);
 		mOffset = (float) Double.parseDouble(offsetStr);
-		mOffset += Constants.GLOBAL_OFFSET;
+		mOffset += Options.instance.offset;
 		
 		//Parse tracks
 		mLeftNotes = new ArrayList<Note>();
@@ -223,6 +224,12 @@ public class World implements Disposable{
 		for(Note note : mRightNotes)
 			note.update(deltaTime);	
 		cleanUpObjects();	
+		if (mPlaying && !AudioManager.instance.isPlaying())
+			onSongEnd();
+	}
+	
+	protected void onSongEnd(){
+		backToSongSelect();
 	}
 	
 	public void handleInput(float deltaTime){

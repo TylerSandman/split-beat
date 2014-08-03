@@ -56,4 +56,10 @@ public class AudioManager {
 		if (mPlayingMusic != null)
 			mPlayingMusic.setVolume(mVolume);
 	}
+	
+	public boolean isPlaying(){
+		if (mPlayingMusic == null)
+			return false;
+		return mPlayingMusic.isPlaying();
+	}
 }
