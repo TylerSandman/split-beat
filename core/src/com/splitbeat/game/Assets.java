@@ -190,9 +190,9 @@ public class Assets implements Disposable, AssetErrorListener{
 		AssetData(){			
 			songs = new ArrayList<SongData>();
 			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Sync", "Tyler Sanderson"));
+			songs.add(new SongData(170.0f, 220.f, "Test", "Test Artist"));
+			songs.add(new SongData(170.0f, 220.f, "Short", "Song"));
 			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
 			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
 			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));

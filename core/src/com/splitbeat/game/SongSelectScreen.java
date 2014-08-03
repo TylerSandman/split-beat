@@ -35,6 +35,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private ScrollPane mSongsPane;
 	private Table mSongsTable;
 	private Table mDifficultyTable;
+	private Table mHeadersTable;
 	private Label mSelectLabel;
 	private TextButton mPlayButton;
 	
@@ -76,6 +77,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		
 		//Build our GUI
 		buildLabels();
+		buildHeadersTable();
 		buildSongPane();	
 		buildDifficultyTable();
 		buildButtons();
@@ -161,31 +163,56 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mSelectLabel.setWrap(true);
 	}
 	
+	private void buildHeadersTable(){
+		
+		mHeadersTable = new Table();
+		Label nameLabel = new Label("Song", mSkin);
+		nameLabel.setAlignment(Align.center);
+		Label artistLabel = new Label("Artist", mSkin);
+		artistLabel.setAlignment(Align.center);
+		Label lengthLabel = new Label("Length", mSkin);
+		lengthLabel.setAlignment(Align.center);
+		Label bpmLabel = new Label("BPM", mSkin);
+		bpmLabel.setAlignment(Align.center);
+		
+		//Make each column fixed size for alignment
+		float colWidth = Gdx.graphics.getWidth() / 4.f;
+		mHeadersTable.add(nameLabel).width(colWidth);
+		mHeadersTable.add(artistLabel).width(colWidth);
+		mHeadersTable.add(lengthLabel).width(colWidth);
+		mHeadersTable.add(bpmLabel).width(colWidth);
+	}
+	
 	private void buildSongPane(){
 		
 		ArrayList<SongData> songs = Assets.instance.data.songs;
 		mSongsTable = new Table();
 		for (SongData data : songs){
+			
+			//Make labels based on song data
 			Table scrollTable = new Table();
 			Label nameLabel = new Label(data.name, mSkin, "black");
 			nameLabel.setAlignment(Align.center);
-			//nameLabel.setTouchable(Touchable.disabled);
 			Label artistLabel = new Label(data.artist, mSkin, "black");
 			artistLabel.setAlignment(Align.center);
-			//artistLabel.setTouchable(Touchable.disabled);
-			String timeStr = Integer.toString((int) data.lengthSeconds);
+			String timeStr = Integer.toString(((int) data.lengthSeconds) / 60);
+			timeStr += ":";
+			timeStr += Integer.toString(((int) data.lengthSeconds) % 60);
 			Label timeLabel = new Label(timeStr, mSkin, "black");
-			//timeLabel.setTouchable(Touchable.disabled);
+			timeLabel.setAlignment(Align.center);
 			String bpmStr = String.format("%.1f", data.bpm);
 			Label bpmLabel = new Label(bpmStr, mSkin, "black");
-			//bpmLabel.setTouchable(Touchable.disabled);
 			bpmLabel.setAlignment(Align.center);
-			scrollTable.add(nameLabel).expandX();
-			scrollTable.add(artistLabel).expandX();
-			scrollTable.add(timeLabel).expandX();
-			scrollTable.add(bpmLabel).expandX();
+			
+			//Make each column fixed size for alignment
+			float colWidth = Gdx.graphics.getWidth() / 4.f;
+			scrollTable.add(nameLabel).width(colWidth);
+			scrollTable.add(artistLabel).width(colWidth);
+			scrollTable.add(timeLabel).width(colWidth);
+			scrollTable.add(bpmLabel).width(colWidth);
 			scrollTable.setBackground(mGradientDrawable);
 			scrollTable.setTouchable(Touchable.enabled);
+			//scrollTable.debug();
 			mSongsTable.add(scrollTable).fillX().expandX();
 			mSongsTable.row();
 		}
@@ -236,11 +263,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 		
 		mLayoutTable = new Table();
 		mLayoutTable.setFillParent(true);
-		mLayoutTable.add(mSelectLabel).pad(10.f).row();
-		mLayoutTable.add(mSongsPane).fill().expand().row();
+		mLayoutTable.add(mSelectLabel).padBottom(10.f).row();
+		mLayoutTable.add(mHeadersTable).fill().expand().row();
+		//mHeadersTable.debug();
+		mLayoutTable.add(mSongsPane).fillX().row();
 		mLayoutTable.add(mDifficultyTable).fill().expandX().pad(10.f).row();
+		//mDifficultyTable.debug();
 		mLayoutTable.add(mPlayButton).expandX().pad(10.f);
-		mLayoutTable.debug();
+		//mLayoutTable.debug();
 	}
 
 	@Override
