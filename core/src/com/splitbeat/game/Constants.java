@@ -49,16 +49,8 @@ public class Constants {
 		NONE
 	}
 	
-	public static final String[] LEFT_MAPS = new String[]{
-		"maps/testEasyLeft.tmx",
-		"maps/syncLeft.tmx"
-	};
-	
-	public static final String[] RIGHT_MAPS = new String[]{
-		"maps/testEasy.tmx",
-		"maps/sync.tmx"
-	};
-	
+	public static final String SYNC_LEFT_MAP = "maps/syncLeft.tmx";
+	public static final String SYNC_RIGHT_MAP = "maps/sync.tmx";
 	
 	//Tiled spritesheet GIDs
 	public static final int RED_ID = 8;

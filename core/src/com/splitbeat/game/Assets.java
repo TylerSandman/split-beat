@@ -16,7 +16,9 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Json;
 
 public class Assets implements Disposable, AssetErrorListener{
 	
@@ -28,7 +30,6 @@ public class Assets implements Disposable, AssetErrorListener{
 	public AssetMusic music;
 	public AssetSounds sounds;
 	public AssetFonts fonts;
-	public AssetData data;
 	
 	private Assets(){}
 	
@@ -44,10 +45,12 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		//Load level
 		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
-		mAssetManager.load(Constants.LEFT_MAPS[0], TiledMap.class);
-		mAssetManager.load(Constants.RIGHT_MAPS[0], TiledMap.class);
-		mAssetManager.load(Constants.LEFT_MAPS[1], TiledMap.class);
-		mAssetManager.load(Constants.RIGHT_MAPS[1], TiledMap.class);
+		for (SongData data : Options.instance.songsData){
+			mAssetManager.load(data.getLeftPath(), TiledMap.class);
+			mAssetManager.load(data.getRightPath(), TiledMap.class);
+		}
+		mAssetManager.load(Constants.SYNC_LEFT_MAP, TiledMap.class);
+		mAssetManager.load(Constants.SYNC_RIGHT_MAP, TiledMap.class);
 		mAssetManager.finishLoading();
 		
 		//Load button textures;
@@ -75,7 +78,6 @@ public class Assets implements Disposable, AssetErrorListener{
 		music = new AssetMusic(mAssetManager);
 		sounds = new AssetSounds(mAssetManager);
 		fonts = new AssetFonts();
-		data = new AssetData();
 		atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_GUI);
 		gui = new AssetGUI(atlas);	
 	}
@@ -155,10 +157,12 @@ public class Assets implements Disposable, AssetErrorListener{
 		AssetMap(AssetManager am){
 			leftMaps = new HashMap<String, TiledMap>();
 			rightMaps = new HashMap<String, TiledMap>();
-			leftMaps.put(Constants.LEFT_MAPS[0], am.get(Constants.LEFT_MAPS[0], TiledMap.class));
-			rightMaps.put(Constants.RIGHT_MAPS[0], am.get(Constants.RIGHT_MAPS[0], TiledMap.class));
-			leftMaps.put(Constants.LEFT_MAPS[1], am.get(Constants.LEFT_MAPS[1], TiledMap.class));
-			rightMaps.put(Constants.RIGHT_MAPS[1], am.get(Constants.RIGHT_MAPS[1], TiledMap.class));
+			for (SongData data : Options.instance.songsData){
+				leftMaps.put(data.getLeftPath(), am.get(data.getLeftPath(), TiledMap.class));
+				rightMaps.put(data.getRightPath(), am.get(data.getRightPath(), TiledMap.class));
+			}
+			leftMaps.put(Constants.SYNC_LEFT_MAP, am.get(Constants.SYNC_LEFT_MAP, TiledMap.class));
+			rightMaps.put(Constants.SYNC_RIGHT_MAP, am.get(Constants.SYNC_RIGHT_MAP, TiledMap.class));
 		}
 	}
 	
@@ -170,39 +174,4 @@ public class Assets implements Disposable, AssetErrorListener{
 			defaultFont.setUseIntegerPositions(false);
 		}
 	}
-	
-	public class AssetData{
-		
-		public class SongData{
-			public final float bpm;
-			public final float lengthSeconds;
-			public final String name;
-			public final String artist;
-			SongData(float bpm, float lengthSeconds, String name, String artist){
-				this.bpm = bpm;
-				this.lengthSeconds = lengthSeconds;
-				this.name = name;
-				this.artist = artist;
-			}
-		}
-		
-		public final ArrayList<SongData> songs;
-		AssetData(){			
-			songs = new ArrayList<SongData>();
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Sync", "Tyler Sanderson"));
-			songs.add(new SongData(170.0f, 220.f, "Test", "Test Artist"));
-			songs.add(new SongData(170.0f, 220.f, "Short", "Song"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
-		}
-	}
-
 }

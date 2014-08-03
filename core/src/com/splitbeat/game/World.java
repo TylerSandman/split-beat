@@ -33,23 +33,24 @@ public class World implements Disposable{
 	protected OrthographicCamera mHUDCamera;
 	protected Game mGame;
 	protected SpriteBatch mBatch;
+	protected TiledMap mLeftMap;
+	protected TiledMap mRightMap;
+	protected boolean mPlaying;
 	
 	private PlayerController mController;
 	private ScoreManager mScoreManager;
-	private TiledMap mLeftMap;
-	private TiledMap mRightMap;
-	protected boolean mPlaying;
-	
 	private float mBPM;
 	private float mMeasureWidthPixels;
 	private float mLeftNoteSpeed;	
 	private float mRightNoteSpeed;
 	private float mOffset;
+	private int mSongIndex;
 	
 	
 	World(Game game, int songIndex){
 		mGame = game;
-		init(songIndex);
+		mSongIndex = songIndex;
+		init(mSongIndex);
 	}
 	
 	private void init(int songIndex){
@@ -70,8 +71,7 @@ public class World implements Disposable{
 		mHUDCamera.update();
 		
 		//Parse Song information
-		mLeftMap = Assets.instance.maps.leftMaps.get(Constants.LEFT_MAPS[songIndex]);
-		mRightMap = Assets.instance.maps.rightMaps.get(Constants.RIGHT_MAPS[songIndex]);
+		initMaps();
 		String bpmStr= mLeftMap.getProperties().get("bpm", String.class);
 		mBPM = (float) Double.parseDouble(bpmStr);
 		String offsetStr = mLeftMap.getProperties().get("offset", String.class);
@@ -148,6 +148,11 @@ public class World implements Disposable{
 			AudioManager.instance.setVolume(0.0f);	
 		initMusic();
 		
+	}
+	
+	protected void initMaps(){
+		mLeftMap = Assets.instance.maps.leftMaps.get(Options.instance.songsData.get(mSongIndex).getLeftPath());
+		mRightMap = Assets.instance.maps.rightMaps.get(Options.instance.songsData.get(mSongIndex).getRightPath());
 	}
 	
 	protected void initMusic(){			

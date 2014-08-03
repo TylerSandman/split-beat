@@ -12,10 +12,10 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -24,7 +24,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
-import com.splitbeat.game.Assets.AssetData.SongData;
 
 public class SongSelectScreen extends AbstractGameScreen {
 	
@@ -94,12 +93,12 @@ public class SongSelectScreen extends AbstractGameScreen {
 				case(Keys.DOWN):
 					if (mSelectedIndex >= 0)
 						dehighlightSong(mSelectedIndex);
-					mSelectedIndex = (mSelectedIndex + 1) % Assets.instance.data.songs.size();
+					mSelectedIndex = (mSelectedIndex + 1) % Options.instance.songsData.size();
 					highlightSong(mSelectedIndex);
 					break;
 				case(Keys.UP):
 					dehighlightSong(mSelectedIndex);
-					mSelectedIndex = (mSelectedIndex + Assets.instance.data.songs.size() - 1) % Assets.instance.data.songs.size();
+					mSelectedIndex = (mSelectedIndex + Options.instance.songsData.size() - 1) % Options.instance.songsData.size();
 					highlightSong(mSelectedIndex);
 					break;
 				case(Keys.ENTER):
@@ -144,7 +143,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	}
 	
 	private void dehighlightSong(int index){
-		
+		if (mSelectedIndex < 0) return;
 		Table songTable = (Table) mSongsTable.getCells().get(mSelectedIndex).getActor();
 		songTable.setBackground(mGradientDrawable);
 	}
@@ -185,22 +184,22 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void buildSongPane(){
 		
-		ArrayList<SongData> songs = Assets.instance.data.songs;
+		ArrayList<SongData> songs = Options.instance.songsData;
 		mSongsTable = new Table();
 		for (SongData data : songs){
 			
 			//Make labels based on song data
 			Table scrollTable = new Table();
-			Label nameLabel = new Label(data.name, mSkin, "black");
+			Label nameLabel = new Label(data.getName(), mSkin, "black");
 			nameLabel.setAlignment(Align.center);
-			Label artistLabel = new Label(data.artist, mSkin, "black");
+			Label artistLabel = new Label(data.getArtist(), mSkin, "black");
 			artistLabel.setAlignment(Align.center);
-			String timeStr = Integer.toString(((int) data.lengthSeconds) / 60);
+			String timeStr = Integer.toString(((int) data.getLength()) / 60);
 			timeStr += ":";
-			timeStr += Integer.toString(((int) data.lengthSeconds) % 60);
+			timeStr += Integer.toString(((int) data.getLength()) % 60);
 			Label timeLabel = new Label(timeStr, mSkin, "black");
 			timeLabel.setAlignment(Align.center);
-			String bpmStr = String.format("%.1f", data.bpm);
+			String bpmStr = String.format("%.1f", data.getBPM());
 			Label bpmLabel = new Label(bpmStr, mSkin, "black");
 			bpmLabel.setAlignment(Align.center);
 			

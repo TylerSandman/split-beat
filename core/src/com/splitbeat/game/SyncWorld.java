@@ -29,6 +29,12 @@ public class SyncWorld extends World {
 	}
 	
 	@Override
+	protected void initMaps(){
+		mLeftMap = Assets.instance.maps.leftMaps.get(Constants.SYNC_LEFT_MAP);
+		mRightMap = Assets.instance.maps.rightMaps.get(Constants.SYNC_RIGHT_MAP);
+	}
+	
+	@Override
 	protected void initMusic(){
 		AudioManager.instance.play(Assets.instance.music.sync);
 	}
