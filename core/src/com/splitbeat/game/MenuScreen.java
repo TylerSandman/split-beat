@@ -91,7 +91,7 @@ public class MenuScreen extends AbstractGameScreen {
 		Table layer = new Table();
 		layer.center();
 		
-		mPlayButton = new TextButton("Play", mSkin, "default");		
+		mPlayButton = new TextButton("Songs", mSkin, "default");		
 		mPlayButton.addListener(new ClickListener() {
 			
 			@Override
@@ -226,7 +226,7 @@ public class MenuScreen extends AbstractGameScreen {
 	}
 	
 	private void onPlayClicked(){
-		game.setScreen(new GameScreen(game));
+		game.setScreen(new SongSelectScreen(game));
 	}
 	
 	private void onSyncClicked(){

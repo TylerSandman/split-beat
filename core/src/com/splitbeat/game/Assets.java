@@ -1,5 +1,6 @@
 package com.splitbeat.game;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
@@ -21,11 +22,13 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	public static final Assets instance = new Assets();
 	private AssetManager mAssetManager;
+	public AssetGUI gui;
 	public AssetButton button;
 	public AssetMap maps;
 	public AssetMusic music;
 	public AssetSounds sounds;
 	public AssetFonts fonts;
+	public AssetData data;
 	
 	private Assets(){}
 	
@@ -52,6 +55,10 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.load(Constants.TEXTURE_ATLAS_NOTES, TextureAtlas.class);
 		mAssetManager.finishLoading();
 		
+		//Load GUI
+		mAssetManager.load(Constants.TEXTURE_ATLAS_GUI, TextureAtlas.class);
+		mAssetManager.finishLoading();
+		
 		//Load music
 		mAssetManager.load("music/paper_planes.ogg", Music.class);
 		mAssetManager.load("music/sync.ogg", Music.class);
@@ -68,7 +75,9 @@ public class Assets implements Disposable, AssetErrorListener{
 		music = new AssetMusic(mAssetManager);
 		sounds = new AssetSounds(mAssetManager);
 		fonts = new AssetFonts();
-		
+		data = new AssetData();
+		atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_GUI);
+		gui = new AssetGUI(atlas);	
 	}
 
 	@Override
@@ -81,6 +90,16 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.dispose();
 		fonts.defaultFont.dispose();
 		music.paperPlanes.dispose();
+	}
+	
+	public class AssetGUI{
+		
+		public final AtlasRegion repeatGradient;
+		public final AtlasRegion repeatGradientHighlight;
+		AssetGUI(TextureAtlas atlas){
+			repeatGradient = atlas.findRegion("gradient_repeat");
+			repeatGradientHighlight = atlas.findRegion("gradient_repeat_highlight");
+		}
 	}
 	
 	public class AssetButton{
@@ -149,6 +168,40 @@ public class Assets implements Disposable, AssetErrorListener{
 		AssetFonts(){
 			defaultFont = new BitmapFont();
 			defaultFont.setUseIntegerPositions(false);
+		}
+	}
+	
+	public class AssetData{
+		
+		public class SongData{
+			public final float bpm;
+			public final float lengthSeconds;
+			public final String name;
+			public final String artist;
+			SongData(float bpm, float lengthSeconds, String name, String artist){
+				this.bpm = bpm;
+				this.lengthSeconds = lengthSeconds;
+				this.name = name;
+				this.artist = artist;
+			}
+		}
+		
+		public final ArrayList<SongData> songs;
+		AssetData(){			
+			songs = new ArrayList<SongData>();
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
+			songs.add(new SongData(170.0f, 220.f, "Paper Planes", "Virtual Riot"));
 		}
 	}
 

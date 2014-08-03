@@ -31,6 +31,20 @@ red_tick
   orig: 17, 17
   offset: 0, 0
   index: -1
+gradient_repeat
+  rotate: false
+  xy: 63, 14
+  size: 10, 10
+  orig: 10, 10
+  offset: 0, 0
+  index: -1
+gradient_repeat_highlight
+  rotate: false
+  xy: 63, 2
+  size: 10, 10
+  orig: 10, 10
+  offset: 0, 0
+  index: -1
 red_button01
   rotate: false
   xy: 103, 77

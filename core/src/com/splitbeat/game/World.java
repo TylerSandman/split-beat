@@ -575,4 +575,8 @@ public class World implements Disposable{
 	public void backToMenu(){
 		mGame.setScreen((new MenuScreen(mGame)));
 	}
+	
+	public void backToSongSelect(){
+		mGame.setScreen(new SongSelectScreen(mGame));
+	}
 }

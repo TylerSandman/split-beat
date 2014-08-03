@@ -15,9 +15,18 @@ com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
         up: red_button13, down: red_button10, over: red_button10,
         font: medium, fontColor: black
     },
-    
     hover: {
     	up: red_button10, font: medium, fontColor: black
+    }
+},
+
+com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
+
+    default: {
+        font: medium, fontColor: white
+    },
+    black: {
+    	font: medium, fontColor: black
     }
 }
 
