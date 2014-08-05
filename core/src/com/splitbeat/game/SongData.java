@@ -44,8 +44,12 @@ public class SongData implements Json.Serializable {
 	public void write(Json json) {
 		json.writeValue("name", mName, String.class);
 		json.writeValue("artist", mArtist, String.class);
+		
+		//Have to remove periods in filepaths so LibGDX's JSON pattern
+		//matcher properly quotes it as a string
 		json.writeValue("left_path", mLeftFilePath.replace(".", " "), String.class);
 		json.writeValue("right_path", mRightFilePath.replace(".", " "), String.class);
+		
 		json.writeValue("bpm", mBpm, Float.class);
 		json.writeValue("length", mLengthSeconds, Float.class);
 		json.writeValue("easy_score", mEasyScore, Float.class);

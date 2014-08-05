@@ -38,8 +38,11 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private Label mSelectLabel;
 	private TextButton mPlayButton;
 	
+	private Label mEasyScoreLabel;
+	private Label mMediumScoreLabel;
+	private Label mHardScoreLabel;
+	
 	private int mSelectedIndex;
-	private int mNumSongs;
 	
 	private Sprite mGradientSprite;
 	private Sprite mGradientHighlightSprite;
@@ -150,8 +153,19 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void highlightSong(int index){
 		
+		//Change background
 		Table songTable = (Table) mSongsTable.getCells().get(mSelectedIndex).getActor();
 		songTable.setBackground(mGradientHighlightDrawable);	
+		
+		//Update scores
+		String easyScore = String.format("%.2f", Options.instance.songsData.get(index).getEasyScore());
+		String mediumScore = String.format("%.2f", Options.instance.songsData.get(index).getMediumScore());
+		String hardScore = String.format("%.2f", Options.instance.songsData.get(index).getHardScore());
+		mEasyScoreLabel.setText(easyScore);
+		mMediumScoreLabel.setText(mediumScore);
+		mHardScoreLabel.setText(hardScore);
+		
+		//Move scroll pane accordingly
 		mSongsPane.scrollTo(songTable.getX(), songTable.getY(), songTable.getWidth(), songTable.getHeight());
 	}
 	
@@ -224,21 +238,21 @@ public class SongSelectScreen extends AbstractGameScreen {
 		Label easyLabel = new Label("Easy", mSkin);
 		Label mediumLabel = new Label("Medium", mSkin);
 		Label hardLabel = new Label("Hard", mSkin);
-		Label easyScoreLabel = new Label("95.00", mSkin);
-		Label mediumScoreLabel = new Label("91.15", mSkin);
-		Label hardScoreLabel = new Label("87.20", mSkin);
+		mEasyScoreLabel = new Label("0.00", mSkin);
+		mMediumScoreLabel = new Label("0.00", mSkin);
+		mHardScoreLabel = new Label("0.00", mSkin);
 		easyLabel.setAlignment(Align.center);
 		mediumLabel.setAlignment(Align.center);
 		hardLabel.setAlignment(Align.center);
-		easyScoreLabel.setAlignment(Align.center);
-		mediumScoreLabel.setAlignment(Align.center);
-		hardScoreLabel.setAlignment(Align.center);
+		mEasyScoreLabel.setAlignment(Align.center);
+		mMediumScoreLabel.setAlignment(Align.center);
+		mHardScoreLabel.setAlignment(Align.center);
 		mDifficultyTable.add(easyLabel).fill().expandX();
 		mDifficultyTable.add(mediumLabel).fill().expandX();
 		mDifficultyTable.add(hardLabel).fill().expandX().row();
-		mDifficultyTable.add(easyScoreLabel).fill().expandX();
-		mDifficultyTable.add(mediumScoreLabel).fill().expandX();
-		mDifficultyTable.add(hardScoreLabel).fill().expandX();
+		mDifficultyTable.add(mEasyScoreLabel).fill().expandX();
+		mDifficultyTable.add(mMediumScoreLabel).fill().expandX();
+		mDifficultyTable.add(mHardScoreLabel).fill().expandX();
 	}
 	
 	private void buildButtons(){
