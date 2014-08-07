@@ -87,16 +87,30 @@ red_button02
   orig: 190, 45
   offset: 0, 0
   index: -1
-red_sliderLeft
+green_sliderRight
   rotate: false
   xy: 487, 1
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
-red_sliderRight
+red_sliderLeft
   rotate: false
   xy: 528, 1
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+red_sliderRight
+  rotate: false
+  xy: 569, 1
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+yellow_sliderRight
+  rotate: false
+  xy: 610, 1
   size: 39, 31
   orig: 39, 31
   offset: 0, 0

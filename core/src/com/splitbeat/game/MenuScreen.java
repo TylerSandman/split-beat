@@ -118,7 +118,7 @@ public class MenuScreen extends AbstractGameScreen {
 			
 		});	
 		
-		layer.add(mPlayButton).padBottom(Constants.BUTTON_PADDING);
+		layer.add(mPlayButton).padBottom(Constants.CELL_PADDING);
 		layer.row();
 		
 		mSyncButton = new TextButton("Sync", mSkin, "default");
@@ -146,7 +146,7 @@ public class MenuScreen extends AbstractGameScreen {
 				mSyncButton.setStyle(mNormalButtonStyle);
 			}
 		});
-		layer.add(mSyncButton).padBottom(Constants.BUTTON_PADDING);
+		layer.add(mSyncButton).padBottom(Constants.CELL_PADDING);
 		layer.row();
 		
 		mOptionsButton = new TextButton("Options", mSkin, "default");

@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -42,12 +43,23 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private Label mMediumScoreLabel;
 	private Label mHardScoreLabel;
 	
+	private Image mEasySlider;
+	private Image mMediumSlider;
+	private Image mHardSlider;
+	
 	private int mSelectedIndex;
+	private Difficulty mSelectedDifficulty;
 	
 	private Sprite mGradientSprite;
 	private Sprite mGradientHighlightSprite;
 	private SpriteDrawable mGradientDrawable;
 	private SpriteDrawable mGradientHighlightDrawable;
+	
+	private enum Difficulty{
+		Easy,
+		Medium,
+		Hard;
+	}
 	
 
 	SongSelectScreen(Game game) {
@@ -69,12 +81,12 @@ public class SongSelectScreen extends AbstractGameScreen {
 		
 		TextureRegion gradientRegion = new TextureRegion(Assets.instance.gui.repeatGradient);
 		mGradientSprite = new Sprite(gradientRegion);
-		mGradientSprite.setSize(mGradientSprite.getWidth(), Gdx.graphics.getHeight() / 10.f);
+		mGradientSprite.setSize(mGradientSprite.getWidth(), Gdx.graphics.getHeight() / Constants.CELL_PADDING);
 		mGradientDrawable = new SpriteDrawable(mGradientSprite);
 		
 		TextureRegion gradientRegionHighlight = new TextureRegion(Assets.instance.gui.repeatGradientHighlight);
 		mGradientHighlightSprite = new Sprite(gradientRegionHighlight);
-		mGradientHighlightSprite.setSize(mGradientHighlightSprite.getWidth(), Gdx.graphics.getHeight() / 10.f);
+		mGradientHighlightSprite.setSize(mGradientHighlightSprite.getWidth(), Gdx.graphics.getHeight() / Constants.CELL_PADDING);
 		mGradientHighlightDrawable = new SpriteDrawable(mGradientHighlightSprite);
 		
 		//Build our GUI
@@ -92,17 +104,33 @@ public class SongSelectScreen extends AbstractGameScreen {
 			
 			@Override
 			public boolean keyDown(InputEvent event, int keycode){
+				int newIndex;
+				Difficulty newDifficulty;
 				switch(keycode){
 				case(Keys.DOWN):
 					if (mSelectedIndex >= 0)
 						dehighlightSong(mSelectedIndex);
-					mSelectedIndex = (mSelectedIndex + 1) % Options.instance.songsData.size();
-					highlightSong(mSelectedIndex);
+					newIndex = (mSelectedIndex + 1) % Options.instance.songsData.size();
+					highlightSong(newIndex);
 					break;
 				case(Keys.UP):
 					dehighlightSong(mSelectedIndex);
-					mSelectedIndex = (mSelectedIndex + Options.instance.songsData.size() - 1) % Options.instance.songsData.size();
-					highlightSong(mSelectedIndex);
+					newIndex = 
+						(mSelectedIndex + Options.instance.songsData.size() - 1) % 
+						Options.instance.songsData.size();
+					highlightSong(newIndex);
+					break;
+				case(Keys.LEFT):
+					newDifficulty =
+						Difficulty.values()[(mSelectedDifficulty.ordinal() + Difficulty.values().length - 1) %
+						                    Difficulty.values().length];
+				selectDifficulty(newDifficulty);
+					break;
+				case(Keys.RIGHT):
+					newDifficulty = 
+						Difficulty.values()[(mSelectedDifficulty.ordinal() + 1) % 
+						                    Difficulty.values().length];
+					selectDifficulty(newDifficulty);
 					break;
 				case(Keys.ENTER):
 					if (mSelectedIndex < 0) break;
@@ -126,23 +154,6 @@ public class SongSelectScreen extends AbstractGameScreen {
 				return true;
 			}
 		});
-		
-		mStage.addListener(new InputListener(){
-			
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
-				Actor touched = mStage.hit(x, y, true);	
-				if (touched != null && touched.hasParent()){
-					Actor parent = touched.getParent();
-					if (parent.isDescendantOf(mSongsPane))
-						return false;
-					InputEvent touchDownEvent = new InputEvent();
-					touchDownEvent.setType(Type.touchDown);
-					//parent.fire(touchDownEvent);
-				}
-				return true;
-			}
-		});
 	}
 	
 	private void dehighlightSong(int index){
@@ -152,6 +163,8 @@ public class SongSelectScreen extends AbstractGameScreen {
 	}
 	
 	private void highlightSong(int index){
+		
+		mSelectedIndex = index;
 		
 		//Change background
 		Table songTable = (Table) mSongsTable.getCells().get(mSelectedIndex).getActor();
@@ -167,6 +180,28 @@ public class SongSelectScreen extends AbstractGameScreen {
 		
 		//Move scroll pane accordingly
 		mSongsPane.scrollTo(songTable.getX(), songTable.getY(), songTable.getWidth(), songTable.getHeight());
+	}
+	
+	private void selectDifficulty(Difficulty difficulty){
+		
+		mSelectedDifficulty = difficulty;
+		
+		//Hide all sliders first
+		mEasySlider.setVisible(false);
+		mMediumSlider.setVisible(false);
+		mHardSlider.setVisible(false);
+		
+		switch(difficulty){
+		case Easy:
+			mEasySlider.setVisible(true);
+			break;
+		case Medium:
+			mMediumSlider.setVisible(true);
+			break;
+		case Hard:
+			mHardSlider.setVisible(true);
+			break;
+		}
 	}
 	
 	private void buildLabels(){
@@ -235,24 +270,90 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private void buildDifficultyTable(){
 		
 		mDifficultyTable = new Table();
+		
 		Label easyLabel = new Label("Easy", mSkin);
 		Label mediumLabel = new Label("Medium", mSkin);
 		Label hardLabel = new Label("Hard", mSkin);
+		
+		mEasySlider = new Image(Assets.instance.gui.greenSlider);
+		mMediumSlider = new Image(Assets.instance.gui.yellowSlider);
+		mMediumSlider.setVisible(false);
+		mHardSlider = new Image(Assets.instance.gui.redSlider);
+		mHardSlider.setVisible(false);
+		mSelectedDifficulty = Difficulty.Easy;
+		
 		mEasyScoreLabel = new Label("0.00", mSkin);
 		mMediumScoreLabel = new Label("0.00", mSkin);
 		mHardScoreLabel = new Label("0.00", mSkin);
+		
 		easyLabel.setAlignment(Align.center);
 		mediumLabel.setAlignment(Align.center);
 		hardLabel.setAlignment(Align.center);
+		
 		mEasyScoreLabel.setAlignment(Align.center);
 		mMediumScoreLabel.setAlignment(Align.center);
 		mHardScoreLabel.setAlignment(Align.center);
-		mDifficultyTable.add(easyLabel).fill().expandX();
-		mDifficultyTable.add(mediumLabel).fill().expandX();
-		mDifficultyTable.add(hardLabel).fill().expandX().row();
-		mDifficultyTable.add(mEasyScoreLabel).fill().expandX();
-		mDifficultyTable.add(mMediumScoreLabel).fill().expandX();
-		mDifficultyTable.add(mHardScoreLabel).fill().expandX();
+		
+		//Fill empty table cells with spaces for proper alignment
+		float spaceWidth = mEasySlider.getWidth() + Constants.CELL_PADDING;
+		
+		Table easyTable = new Table();
+		easyTable.add(mEasySlider).padRight(Constants.CELL_PADDING);
+		easyTable.add(easyLabel);
+		easyTable.add().width(spaceWidth).row();
+		easyTable.add().width(spaceWidth);
+		easyTable.add(mEasyScoreLabel);
+		easyTable.add().width(spaceWidth);
+		easyTable.setTouchable(Touchable.enabled);
+		
+		Table mediumTable = new Table();
+		mediumTable.add(mMediumSlider).padRight(Constants.CELL_PADDING);
+		mediumTable.add(mediumLabel);
+		mediumTable.add().width(spaceWidth).row();
+		mediumTable.add().width(spaceWidth);
+		mediumTable.add(mMediumScoreLabel);
+		mediumTable.add().width(spaceWidth);
+		mediumTable.setTouchable(Touchable.enabled);
+		
+		Table hardTable = new Table();
+		hardTable.add(mHardSlider).padRight(Constants.CELL_PADDING);
+		hardTable.add(hardLabel);
+		hardTable.add().width(spaceWidth).row();
+		hardTable.add().width(spaceWidth);
+		hardTable.add(mHardScoreLabel);
+		hardTable.add().width(spaceWidth);
+		hardTable.setTouchable(Touchable.enabled);
+		
+		//Make each column fixed size for alignment
+		float colWidth = Gdx.graphics.getWidth() / 3.f;
+		mDifficultyTable.add(easyTable).width(colWidth).align(Align.center);
+		mDifficultyTable.add(mediumTable).width(colWidth).align(Align.center);
+		mDifficultyTable.add(hardTable).width(colWidth).align(Align.center);				
+		
+		//Touch support for difficulty switching
+		easyTable.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				selectDifficulty(Difficulty.Easy);
+				return true;
+			}
+		});
+		
+		mediumTable.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				selectDifficulty(Difficulty.Medium);
+				return true;
+			}
+		});
+		
+		hardTable.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				selectDifficulty(Difficulty.Hard);
+				return true;
+			}
+		});
 	}
 	
 	private void buildButtons(){
@@ -276,13 +377,13 @@ public class SongSelectScreen extends AbstractGameScreen {
 		
 		mLayoutTable = new Table();
 		mLayoutTable.setFillParent(true);
-		mLayoutTable.add(mSelectLabel).padBottom(10.f).row();
+		mLayoutTable.add(mSelectLabel).padBottom(Constants.CELL_PADDING).row();
 		mLayoutTable.add(mHeadersTable).fill().expand().row();
 		//mHeadersTable.debug();
 		mLayoutTable.add(mSongsPane).fillX().row();
-		mLayoutTable.add(mDifficultyTable).fill().expandX().pad(10.f).row();
+		mLayoutTable.add(mDifficultyTable).fill().expandX().pad(Constants.CELL_PADDING).row();
 		//mDifficultyTable.debug();
-		mLayoutTable.add(mPlayButton).expandX().pad(10.f);
+		mLayoutTable.add(mPlayButton).expandX().pad(Constants.CELL_PADDING);
 		//mLayoutTable.debug();
 	}
 

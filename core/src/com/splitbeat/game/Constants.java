@@ -78,7 +78,7 @@ public class Constants {
 	public static final int DROP_POINTS = 0;
 	
 	//Conversion and measurement constants
-	public static final float BUTTON_PADDING = 10.f;
+	public static final float CELL_PADDING = 10.f;
 	public static final int MEASURE_WIDTH_NOTES = 4;
 	public static final int NUM_SYNC_CALCULATION_BEATS = 4;
 	public static final float GLOW_ANIMATION_TIME = 0.1f;

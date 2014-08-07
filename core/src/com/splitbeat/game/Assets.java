@@ -98,9 +98,15 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		public final AtlasRegion repeatGradient;
 		public final AtlasRegion repeatGradientHighlight;
+		public final AtlasRegion greenSlider;
+		public final AtlasRegion yellowSlider;
+		public final AtlasRegion redSlider;
 		AssetGUI(TextureAtlas atlas){
 			repeatGradient = atlas.findRegion("gradient_repeat");
 			repeatGradientHighlight = atlas.findRegion("gradient_repeat_highlight");
+			greenSlider = atlas.findRegion("green_sliderRight");
+			yellowSlider = atlas.findRegion("yellow_sliderRight");
+			redSlider = atlas.findRegion("red_sliderRight");
 		}
 	}
 	
