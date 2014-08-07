@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="1000" height="3" tilewidth="40" tileheight="40">
+ <properties>
+  <property name="bpm" value="175"/>
+  <property name="offset" value="-0.04"/>
+ </properties>
+ <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
+  <image source="split-beat-tileset.png" width="256" height="128"/>
+ </tileset>
+ <objectgroup name="Notes" width="1000" height="3">
+  <object gid="8" x="34680" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="29560" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="33400" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="32120" y="40">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="30840" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="28280" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="27000" y="40">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="25720" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="25080" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="24440" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="19320" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="23160" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="21880" y="40">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="20600" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="18040" y="80">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="16760" y="40">
+   <properties>
+    <property name="hold" value="3"/>
+   </properties>
+  </object>
+  <object gid="8" x="15480" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="14840" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="19960" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+  <object gid="8" x="30200" y="80">
+   <properties>
+    <property name="hold" value="1.5"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup name="Markers" width="1000" height="3"/>
+</map>

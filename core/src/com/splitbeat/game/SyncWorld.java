@@ -14,7 +14,7 @@ public class SyncWorld extends World {
 	private float mCalculatedOffset;
 	
 	SyncWorld(Game game) {
-		super(game, 1);
+		super(game, 1, Difficulty.Easy);
 		
 		//Calculate scroll speed
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;

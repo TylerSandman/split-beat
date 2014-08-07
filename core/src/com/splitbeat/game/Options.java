@@ -35,25 +35,25 @@ public class Options implements Disposable{
 	private void initSongsData(){
 		
 		songsData = new ArrayList<SongData>();
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
-		songsData.add(new SongData("Paper Planes", "Virtual Riot", "maps/testEasyLeft.tmx", "maps/testEasy.tmx",
+		songsData.add(new SongData("Paper Planes", "Virtual Riot", "test.tmx",
 				170.f, 220.f, 0.f, 0.f, 0.f));
 		Json json = new Json();
 		mPrefs.putString("songs_data", json.toJson(songsData, Array.class, SongData.class));

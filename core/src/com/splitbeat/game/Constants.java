@@ -49,8 +49,12 @@ public class Constants {
 		NONE
 	}
 	
-	public static final String SYNC_LEFT_MAP = "maps/syncLeft.tmx";
-	public static final String SYNC_RIGHT_MAP = "maps/sync.tmx";
+	//File paths
+	public static final String SYNC_LEFT_MAP = "maps/sync_left.tmx";
+	public static final String SYNC_RIGHT_MAP = "maps/sync_right.tmx";
+	public static final String EASY_PATH = "maps/easy/";
+	public static final String MEDIUM_PATH = "maps/medium/";
+	public static final String HARD_PATH = "maps/hard/";
 	
 	//Tiled spritesheet GIDs
 	public static final int RED_ID = 8;

@@ -9,11 +9,13 @@ public class GameScreen extends AbstractGameScreen {
 	protected boolean mPaused;
 	protected World mWorld;
 	private int mSongIndex;
+	private Difficulty mDifficulty;
 	
-	GameScreen(Game game, int songIndex){
+	GameScreen(Game game, int songIndex, Difficulty difficulty){
 		super(game);
 		mPaused = false;
 		mSongIndex = songIndex;
+		mDifficulty = difficulty;
 	}
 
 	@Override
@@ -32,7 +34,7 @@ public class GameScreen extends AbstractGameScreen {
 
 	@Override
 	public void show() {
-		mWorld = new World(game, mSongIndex);
+		mWorld = new World(game, mSongIndex, mDifficulty);
 		Gdx.input.setCatchBackKey(true);
 	}
 

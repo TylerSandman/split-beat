@@ -54,13 +54,6 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private Sprite mGradientHighlightSprite;
 	private SpriteDrawable mGradientDrawable;
 	private SpriteDrawable mGradientHighlightDrawable;
-	
-	private enum Difficulty{
-		Easy,
-		Medium,
-		Hard;
-	}
-	
 
 	SongSelectScreen(Game game) {
 		super(game);
@@ -121,20 +114,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 					highlightSong(newIndex);
 					break;
 				case(Keys.LEFT):
-					newDifficulty =
-						Difficulty.values()[(mSelectedDifficulty.ordinal() + Difficulty.values().length - 1) %
-						                    Difficulty.values().length];
-				selectDifficulty(newDifficulty);
+					selectDifficulty(mSelectedDifficulty.prev());
 					break;
 				case(Keys.RIGHT):
-					newDifficulty = 
-						Difficulty.values()[(mSelectedDifficulty.ordinal() + 1) % 
-						                    Difficulty.values().length];
-					selectDifficulty(newDifficulty);
+					selectDifficulty(mSelectedDifficulty.next());
 					break;
 				case(Keys.ENTER):
 					if (mSelectedIndex < 0) break;
-					game.setScreen(new GameScreen(game, mSelectedIndex));
+					game.setScreen(new GameScreen(game, mSelectedIndex, mSelectedDifficulty));
 					break;
 				case(Keys.ESCAPE):
 					game.setScreen(new MenuScreen(game));
@@ -370,7 +357,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void onPlayClicked(){
 		if (mSelectedIndex < 0) return;
-		game.setScreen(new GameScreen(game, mSelectedIndex));
+		game.setScreen(new GameScreen(game, mSelectedIndex, mSelectedDifficulty));
 	}
 	
 	private void buildLayoutTable(){

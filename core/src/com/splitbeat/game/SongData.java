@@ -7,8 +7,7 @@ public class SongData implements Json.Serializable {
 	
 	private String mName;
 	private String mArtist;
-	private String mLeftFilePath;
-	private String mRightFilePath;
+	private String mFilename;
 	private float mBpm;
 	private float mLengthSeconds;
 	private float mEasyScore;
@@ -17,12 +16,11 @@ public class SongData implements Json.Serializable {
 	
 	SongData(){}
 	
-	SongData(String name, String artist, String leftFilePath, String rightFilePath,
+	SongData(String name, String artist, String filename,
 			float bpm, float lengthSeconds, float easyScore, float mediumScore, float hardScore){
 		mName = name;
 		mArtist = artist;
-		mLeftFilePath = leftFilePath;
-		mRightFilePath = rightFilePath;
+		mFilename = filename;
 		mBpm = bpm;
 		mLengthSeconds = lengthSeconds;
 		mEasyScore = easyScore;
@@ -32,13 +30,43 @@ public class SongData implements Json.Serializable {
 	
 	public String getName(){ return mName; }
 	public String getArtist(){ return mArtist; }
-	public String getLeftPath(){ return mLeftFilePath; }
-	public String getRightPath(){ return mRightFilePath; }
+	public String getFilename(){ return mFilename; }
 	public float getBPM(){ return mBpm; }
 	public float getLength(){ return mLengthSeconds; }
 	public float getEasyScore(){ return mEasyScore; }
 	public float getMediumScore(){ return mMediumScore; }
 	public float getHardScore(){ return mHardScore; }
+	
+	private String getDifPath(Difficulty difficulty){
+		String difficultyPath;
+		switch(difficulty){
+		case Easy:
+			difficultyPath = Constants.EASY_PATH;
+			break;
+		case Medium:
+			difficultyPath = Constants.MEDIUM_PATH;
+			break;
+		case Hard:
+			difficultyPath = Constants.HARD_PATH;
+			break;
+		default:
+			difficultyPath = Constants.EASY_PATH;
+			break;
+		}
+		return difficultyPath;
+	}
+	
+	public String getLeftPath(Difficulty difficulty){
+
+		String rawName = mFilename.substring(0, mFilename.length() - 4);
+		return getDifPath(difficulty) + rawName + "_left.tmx";
+	}
+	
+	public String getRightPath(Difficulty difficulty){
+		
+		String rawName = mFilename.substring(0, mFilename.length() - 4);
+		return getDifPath(difficulty) + rawName + "_right.tmx";
+	}
 	
 	@Override
 	public void write(Json json) {
@@ -47,8 +75,7 @@ public class SongData implements Json.Serializable {
 		
 		//Have to remove periods in filepaths so LibGDX's JSON pattern
 		//matcher properly quotes it as a string
-		json.writeValue("left_path", mLeftFilePath.replace(".", " "), String.class);
-		json.writeValue("right_path", mRightFilePath.replace(".", " "), String.class);
+		json.writeValue("filename", mFilename.replace(".", " "), String.class);
 		
 		json.writeValue("bpm", mBpm, Float.class);
 		json.writeValue("length", mLengthSeconds, Float.class);
@@ -61,8 +88,7 @@ public class SongData implements Json.Serializable {
 	public void read(Json json, JsonValue jsonData) {
 		mName = jsonData.getString("name", "");
 		mArtist = jsonData.getString("artist", "");
-		mLeftFilePath = jsonData.getString("left_path", "").replace(" ", ".");
-		mRightFilePath = jsonData.getString("right_path", "").replace(" ", ".");
+		mFilename = jsonData.getString("filename", "").replace(" ", ".");
 		mBpm = jsonData.getFloat("bpm", 0.f);
 		mLengthSeconds = jsonData.getFloat("length", 0.f);
 		mEasyScore = jsonData.getFloat("easy_score", 0.f);

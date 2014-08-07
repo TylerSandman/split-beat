@@ -43,11 +43,13 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager = assetManager;
 		mAssetManager.setErrorListener(this);	
 		
-		//Load level
+		//Load levels
 		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
 		for (SongData data : Options.instance.songsData){
-			mAssetManager.load(data.getLeftPath(), TiledMap.class);
-			mAssetManager.load(data.getRightPath(), TiledMap.class);
+			for (Difficulty dif : Difficulty.values()){
+				mAssetManager.load(data.getLeftPath(dif), TiledMap.class);
+				mAssetManager.load(data.getRightPath(dif), TiledMap.class);
+			}
 		}
 		mAssetManager.load(Constants.SYNC_LEFT_MAP, TiledMap.class);
 		mAssetManager.load(Constants.SYNC_RIGHT_MAP, TiledMap.class);
@@ -164,8 +166,10 @@ public class Assets implements Disposable, AssetErrorListener{
 			leftMaps = new HashMap<String, TiledMap>();
 			rightMaps = new HashMap<String, TiledMap>();
 			for (SongData data : Options.instance.songsData){
-				leftMaps.put(data.getLeftPath(), am.get(data.getLeftPath(), TiledMap.class));
-				rightMaps.put(data.getRightPath(), am.get(data.getRightPath(), TiledMap.class));
+				for (Difficulty dif : Difficulty.values()){
+					leftMaps.put(data.getLeftPath(dif), am.get(data.getLeftPath(dif), TiledMap.class));
+					rightMaps.put(data.getRightPath(dif), am.get(data.getRightPath(dif), TiledMap.class));
+				}				
 			}
 			leftMaps.put(Constants.SYNC_LEFT_MAP, am.get(Constants.SYNC_LEFT_MAP, TiledMap.class));
 			rightMaps.put(Constants.SYNC_RIGHT_MAP, am.get(Constants.SYNC_RIGHT_MAP, TiledMap.class));
