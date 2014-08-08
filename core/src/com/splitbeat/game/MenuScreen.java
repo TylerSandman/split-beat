@@ -30,6 +30,7 @@ public class MenuScreen extends AbstractGameScreen {
 	private Table mButtonLayer;
 	
 	private TextButton mPlayButton;
+	private TextButton mEditButton;
 	private TextButton mSyncButton;
 	private TextButton mOptionsButton;
 	private TextButton.TextButtonStyle mHoverButtonStyle;
@@ -174,7 +175,34 @@ public class MenuScreen extends AbstractGameScreen {
 				mOptionsButton.setStyle(mNormalButtonStyle);
 			}
 		});
-		layer.add(mOptionsButton);
+		layer.add(mOptionsButton).padBottom(Constants.CELL_PADDING).row();
+		
+		mEditButton = new TextButton("Edit", mSkin, "default");
+		mEditButton.addListener(new ClickListener() {
+			
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				onEditClicked();
+				return true;
+			}
+			
+			@Override
+			public void touchUp(InputEvent event, float x, float y, int pointer, int button){
+				mEditButton.setStyle(mNormalButtonStyle);
+			}
+			
+			@Override
+			public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor){
+				deselectAllButtons();
+				mEditButton.setStyle(mHoverButtonStyle);
+			}
+			
+			@Override
+			public void exit(InputEvent event, float x, float y, int pointer, Actor toActor){
+				mEditButton.setStyle(mNormalButtonStyle);
+			}
+		});
+		layer.add(mEditButton);
 		return layer;
 	}
 
@@ -227,6 +255,10 @@ public class MenuScreen extends AbstractGameScreen {
 	
 	private void onPlayClicked(){
 		game.setScreen(new SongSelectScreen(game));
+	}
+	
+	private void onEditClicked(){
+		game.setScreen(new SongEditScreen(game));
 	}
 	
 	private void onSyncClicked(){
