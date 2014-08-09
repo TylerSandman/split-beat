@@ -1,98 +1,93 @@
 package com.splitbeat.game;
 
-import com.badlogic.gdx.utils.Json;
-import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.maps.tiled.TiledMap;
 
-public class SongData implements Json.Serializable {
+public class SongData{
 	
+	//Folder name
 	private String mName;
+	
+	//Title to be displayed
+	private String mTitle;
+	
 	private String mArtist;
-	private String mFilename;
 	private float mBpm;
 	private float mLengthSeconds;
-	private float mEasyScore;
-	private float mMediumScore;
-	private float mHardScore;
+	private float mOffset;
 	
-	SongData(){}
+	private TiledMap mEasyLeftMap;
+	private TiledMap mEasyRightMap;
+	private TiledMap mMediumLeftMap;
+	private TiledMap mMediumRightMap;
+	private TiledMap mHardLeftMap;
+	private TiledMap mHardRightMap;
 	
-	SongData(String name, String artist, String filename,
-			float bpm, float lengthSeconds, float easyScore, float mediumScore, float hardScore){
+	SongData(String name){
 		mName = name;
-		mArtist = artist;
-		mFilename = filename;
-		mBpm = bpm;
-		mLengthSeconds = lengthSeconds;
-		mEasyScore = easyScore;
-		mMediumScore = mediumScore;
-		mHardScore = hardScore;
+		mTitle = "";
+		mArtist = "";
+		mBpm = 0.f;
+		mLengthSeconds = 0.f;
+		mOffset = 0.f;
+		mEasyLeftMap = null;
+		mEasyRightMap = null;
+		mMediumLeftMap = null;
+		mMediumRightMap = null;
+		mHardLeftMap = null;
+		mHardRightMap = null;
+	}
+	
+	public void setEasyMaps(TiledMap left, TiledMap right){
+		mEasyLeftMap = left;
+		mEasyRightMap = right;
+	}
+	
+	public void setMediumMaps(TiledMap left, TiledMap right){
+		mMediumLeftMap = left;
+		mMediumRightMap = right;
+	}
+	
+	public void setHardMaps(TiledMap left, TiledMap right){
+		mHardLeftMap = left;
+		mHardRightMap = right;
+	}
+	
+	public TiledMap getLeftMap(Difficulty difficulty){
+		switch(difficulty){
+		case Easy:
+			return mEasyLeftMap;
+		case Medium:
+			return mMediumLeftMap;
+		case Hard:
+			return mHardLeftMap;
+		default:
+			return mEasyLeftMap;
+		}
+	}
+	
+	public TiledMap getRightMap(Difficulty difficulty){
+		switch(difficulty){
+		case Easy:
+			return mEasyRightMap;
+		case Medium:
+			return mMediumRightMap;
+		case Hard:
+			return mHardRightMap;
+		default:
+			return mEasyRightMap;
+		}
 	}
 	
 	public String getName(){ return mName; }
+	public void setTitle(String title){ mTitle = title; }
+	public String getTitle(){ return mTitle; }
+	public void setArtist(String artist){ mArtist = artist; }
 	public String getArtist(){ return mArtist; }
-	public String getFilename(){ return mFilename; }
-	public float getBPM(){ return mBpm; }
+	public void setBpm(float bpm){ mBpm = bpm; }
+	public float getBpm(){return mBpm; }
+	public void setLength(float seconds){ mLengthSeconds = seconds; }
 	public float getLength(){ return mLengthSeconds; }
-	public float getEasyScore(){ return mEasyScore; }
-	public float getMediumScore(){ return mMediumScore; }
-	public float getHardScore(){ return mHardScore; }
+	public void setOffset(float offset){ mOffset = offset; }
+	public float getOffset(){ return mOffset; }
 	
-	private String getDifPath(Difficulty difficulty){
-		String difficultyPath;
-		switch(difficulty){
-		case Easy:
-			difficultyPath = Constants.EASY_PATH;
-			break;
-		case Medium:
-			difficultyPath = Constants.MEDIUM_PATH;
-			break;
-		case Hard:
-			difficultyPath = Constants.HARD_PATH;
-			break;
-		default:
-			difficultyPath = Constants.EASY_PATH;
-			break;
-		}
-		return difficultyPath;
-	}
-	
-	public String getLeftPath(Difficulty difficulty){
-
-		String rawName = mFilename.substring(0, mFilename.length() - 4);
-		return getDifPath(difficulty) + rawName + "_left.tmx";
-	}
-	
-	public String getRightPath(Difficulty difficulty){
-		
-		String rawName = mFilename.substring(0, mFilename.length() - 4);
-		return getDifPath(difficulty) + rawName + "_right.tmx";
-	}
-	
-	@Override
-	public void write(Json json) {
-		json.writeValue("name", mName, String.class);
-		json.writeValue("artist", mArtist, String.class);
-		
-		//Have to remove periods in filepaths so LibGDX's JSON pattern
-		//matcher properly quotes it as a string
-		json.writeValue("filename", mFilename.replace(".", " "), String.class);
-		
-		json.writeValue("bpm", mBpm, Float.class);
-		json.writeValue("length", mLengthSeconds, Float.class);
-		json.writeValue("easy_score", mEasyScore, Float.class);
-		json.writeValue("medium_score", mMediumScore, Float.class);
-		json.writeValue("hard_score", mHardScore, Float.class);
-	}
-	
-	@Override
-	public void read(Json json, JsonValue jsonData) {
-		mName = jsonData.getString("name", "");
-		mArtist = jsonData.getString("artist", "");
-		mFilename = jsonData.getString("filename", "").replace(" ", ".");
-		mBpm = jsonData.getFloat("bpm", 0.f);
-		mLengthSeconds = jsonData.getFloat("length", 0.f);
-		mEasyScore = jsonData.getFloat("easy_score", 0.f);
-		mMediumScore = jsonData.getFloat("medium_score", 0.f);
-		mHardScore = jsonData.getFloat("hard_score", 0.f);
-	}
 }

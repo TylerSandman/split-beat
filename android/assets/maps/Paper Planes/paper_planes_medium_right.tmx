@@ -3,6 +3,9 @@
  <properties>
   <property name="bpm" value="175"/>
   <property name="offset" value="-0.04"/>
+  <property name="artist" value="Virtual Riot"/>
+  <property name="title" value="Paper Planes"/>
+  <property name="length" value="220.0"/>
  </properties>
  <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
   <image source="split-beat-tileset.png" width="256" height="128"/>

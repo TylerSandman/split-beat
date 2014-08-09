@@ -44,13 +44,13 @@ public class World implements Disposable{
 	private float mLeftNoteSpeed;	
 	private float mRightNoteSpeed;
 	private float mOffset;
-	private int mSongIndex;
+	private String mSongName;
 	private Difficulty mDifficulty;
 	
 	
-	World(Game game, int songIndex, Difficulty difficulty){
+	World(Game game, String songName, Difficulty difficulty){
 		mGame = game;
-		mSongIndex = songIndex;
+		mSongName = songName;
 		mDifficulty = difficulty;
 		init();
 	}
@@ -153,12 +153,12 @@ public class World implements Disposable{
 	}
 	
 	protected void initMaps(){
-		mLeftMap = Assets.instance.maps.leftMaps.get(Options.instance.songsData.get(mSongIndex).getLeftPath(mDifficulty));
-		mRightMap = Assets.instance.maps.rightMaps.get(Options.instance.songsData.get(mSongIndex).getRightPath(mDifficulty));
+		mLeftMap = Assets.instance.maps.dataMap.get(mSongName).getLeftMap(Difficulty.Easy);
+		mRightMap = Assets.instance.maps.dataMap.get(mSongName).getRightMap(Difficulty.Easy);
 	}
 	
 	protected void initMusic(){			
-		AudioManager.instance.play(Assets.instance.music.paperPlanes);
+		AudioManager.instance.play(Assets.instance.music.musicMap.get(mSongName));
 	}
 	
 	protected void update(float deltaTime){

@@ -6,11 +6,16 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 public class SongEditScreen extends AbstractGameScreen {
 	
+	private TmxMapBuilder mBuilder;
+	
 	SongEditScreen(Game game){
 		super(game);
 	}
 	
-	private void init(){}
+	private void init(){
+		mBuilder = new TmxMapBuilder();
+		mBuilder.create("test");
+	}
 	
 	@Override
 	public void show() {

@@ -4,9 +4,7 @@
   <property name="bpm" value="120"/>
   <property name="offset" value="-0.215"/>
  </properties>
- <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
-  <image source="split-beat-tileset.png" width="256" height="128"/>
- </tileset>
+
  <objectgroup name="Notes" width="1000" height="3">
   <object gid="8" x="39160" y="80"/>
   <object gid="8" x="39000" y="80"/>

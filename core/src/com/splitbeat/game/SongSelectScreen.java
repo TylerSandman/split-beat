@@ -1,6 +1,7 @@
 package com.splitbeat.game;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
@@ -10,9 +11,7 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
@@ -49,6 +48,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private int mSelectedIndex;
 	private Difficulty mSelectedDifficulty;
+	private ArrayList<SongData> mSongDataArr;
 	
 	private Sprite mGradientSprite;
 	private Sprite mGradientHighlightSprite;
@@ -58,6 +58,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	SongSelectScreen(Game game) {
 		super(game);
 		mSelectedIndex = -1;
+		mSongDataArr = new ArrayList<SongData>();
 	}
 	
 	private void init(){
@@ -103,14 +104,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 				case(Keys.DOWN):
 					if (mSelectedIndex >= 0)
 						dehighlightSong(mSelectedIndex);
-					newIndex = (mSelectedIndex + 1) % Options.instance.songsData.size();
+					newIndex = (mSelectedIndex + 1) % Assets.instance.maps.dataMap.size();
 					highlightSong(newIndex);
 					break;
 				case(Keys.UP):
 					dehighlightSong(mSelectedIndex);
 					newIndex = 
-						(mSelectedIndex + Options.instance.songsData.size() - 1) % 
-						Options.instance.songsData.size();
+						(mSelectedIndex + Assets.instance.maps.dataMap.size() - 1) % 
+						Assets.instance.maps.dataMap.size();
 					highlightSong(newIndex);
 					break;
 				case(Keys.LEFT):
@@ -121,7 +122,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 					break;
 				case(Keys.ENTER):
 					if (mSelectedIndex < 0) break;
-					game.setScreen(new GameScreen(game, mSelectedIndex, mSelectedDifficulty));
+					game.setScreen(new GameScreen(game, mSongDataArr.get(mSelectedIndex).getName(), mSelectedDifficulty));
 					break;
 				case(Keys.ESCAPE):
 					game.setScreen(new MenuScreen(game));
@@ -158,9 +159,9 @@ public class SongSelectScreen extends AbstractGameScreen {
 		songTable.setBackground(mGradientHighlightDrawable);	
 		
 		//Update scores
-		String easyScore = String.format("%.2f", Options.instance.songsData.get(index).getEasyScore());
-		String mediumScore = String.format("%.2f", Options.instance.songsData.get(index).getMediumScore());
-		String hardScore = String.format("%.2f", Options.instance.songsData.get(index).getHardScore());
+		String easyScore = String.format("%.2f", 0.00);
+		String mediumScore = String.format("%.2f", 0.00);
+		String hardScore = String.format("%.2f", 0.00);
 		mEasyScoreLabel.setText(easyScore);
 		mMediumScoreLabel.setText(mediumScore);
 		mHardScoreLabel.setText(hardScore);
@@ -220,13 +221,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void buildSongPane(){
 		
-		ArrayList<SongData> songs = Options.instance.songsData;
 		mSongsTable = new Table();
-		for (SongData data : songs){
+		for (Map.Entry<String, SongData> entry : Assets.instance.maps.dataMap.entrySet()){
 			
+			SongData data = entry.getValue();
+			mSongDataArr.add(data);
 			//Make labels based on song data
 			Table scrollTable = new Table();
-			Label nameLabel = new Label(data.getName(), mSkin, "black");
+			Label nameLabel = new Label(data.getTitle(), mSkin, "black");
 			nameLabel.setAlignment(Align.center);
 			Label artistLabel = new Label(data.getArtist(), mSkin, "black");
 			artistLabel.setAlignment(Align.center);
@@ -235,7 +237,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 			timeStr += Integer.toString(((int) data.getLength()) % 60);
 			Label timeLabel = new Label(timeStr, mSkin, "black");
 			timeLabel.setAlignment(Align.center);
-			String bpmStr = String.format("%.1f", data.getBPM());
+			String bpmStr = String.format("%.1f", data.getBpm());
 			Label bpmLabel = new Label(bpmStr, mSkin, "black");
 			bpmLabel.setAlignment(Align.center);
 			
@@ -357,7 +359,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void onPlayClicked(){
 		if (mSelectedIndex < 0) return;
-		game.setScreen(new GameScreen(game, mSelectedIndex, mSelectedDifficulty));
+		game.setScreen(new GameScreen(game, mSongDataArr.get(mSelectedIndex).getName(), mSelectedDifficulty));
 	}
 	
 	private void buildLayoutTable(){
@@ -365,10 +367,10 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mLayoutTable = new Table();
 		mLayoutTable.setFillParent(true);
 		mLayoutTable.add(mSelectLabel).padBottom(Constants.CELL_PADDING).row();
-		mLayoutTable.add(mHeadersTable).fill().expand().row();
+		mLayoutTable.add(mHeadersTable).fillX().expandX().row();
 		//mHeadersTable.debug();
-		mLayoutTable.add(mSongsPane).fillX().row();
-		mLayoutTable.add(mDifficultyTable).fill().expandX().pad(Constants.CELL_PADDING).row();
+		mLayoutTable.add(mSongsPane).fill().expand().row();
+		mLayoutTable.add(mDifficultyTable).fillX().expandX().pad(Constants.CELL_PADDING).row();
 		//mDifficultyTable.debug();
 		mLayoutTable.add(mPlayButton).expandX().pad(Constants.CELL_PADDING);
 		//mLayoutTable.debug();

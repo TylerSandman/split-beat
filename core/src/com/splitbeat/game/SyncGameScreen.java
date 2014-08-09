@@ -6,7 +6,7 @@ import com.badlogic.gdx.Gdx;
 public class SyncGameScreen extends GameScreen {
 
 	SyncGameScreen(Game game) {
-		super(game, 1, Difficulty.Easy);
+		super(game, "", Difficulty.Easy);
 	}
 	
 	@Override

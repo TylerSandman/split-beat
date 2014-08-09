@@ -14,7 +14,7 @@ public class SyncWorld extends World {
 	private float mCalculatedOffset;
 	
 	SyncWorld(Game game) {
-		super(game, 1, Difficulty.Easy);
+		super(game, "", Difficulty.Easy);
 		
 		//Calculate scroll speed
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
@@ -30,8 +30,8 @@ public class SyncWorld extends World {
 	
 	@Override
 	protected void initMaps(){
-		mLeftMap = Assets.instance.maps.leftMaps.get(Constants.SYNC_LEFT_MAP);
-		mRightMap = Assets.instance.maps.rightMaps.get(Constants.SYNC_RIGHT_MAP);
+		mLeftMap = Assets.instance.sync.left;
+		mRightMap = Assets.instance.sync.right;
 	}
 	
 	@Override

@@ -1,6 +1,5 @@
 package com.splitbeat.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
@@ -11,14 +10,14 @@ import com.badlogic.gdx.assets.loaders.TextureAtlasLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
+import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Json;
 
 public class Assets implements Disposable, AssetErrorListener{
 	
@@ -27,6 +26,7 @@ public class Assets implements Disposable, AssetErrorListener{
 	public AssetGUI gui;
 	public AssetButton button;
 	public AssetMap maps;
+	public AssetSync sync;
 	public AssetMusic music;
 	public AssetSounds sounds;
 	public AssetFonts fonts;
@@ -43,14 +43,10 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager = assetManager;
 		mAssetManager.setErrorListener(this);	
 		
-		//Load levels
-		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
-		for (SongData data : Options.instance.songsData){
-			for (Difficulty dif : Difficulty.values()){
-				mAssetManager.load(data.getLeftPath(dif), TiledMap.class);
-				mAssetManager.load(data.getRightPath(dif), TiledMap.class);
-			}
-		}
+		//Load main maps
+		loadMaps();
+
+		//Load sync map
 		mAssetManager.load(Constants.SYNC_LEFT_MAP, TiledMap.class);
 		mAssetManager.load(Constants.SYNC_RIGHT_MAP, TiledMap.class);
 		mAssetManager.finishLoading();
@@ -65,7 +61,6 @@ public class Assets implements Disposable, AssetErrorListener{
 		mAssetManager.finishLoading();
 		
 		//Load music
-		mAssetManager.load("music/paper_planes.ogg", Music.class);
 		mAssetManager.load("music/sync.ogg", Music.class);
 		mAssetManager.finishLoading();
 		
@@ -77,11 +72,73 @@ public class Assets implements Disposable, AssetErrorListener{
 		TextureAtlas atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_NOTES);	
 		button = new AssetButton(atlas);
 		maps = new AssetMap(mAssetManager);
+		sync = new AssetSync(mAssetManager);
 		music = new AssetMusic(mAssetManager);
 		sounds = new AssetSounds(mAssetManager);
 		fonts = new AssetFonts();
 		atlas = mAssetManager.get(Constants.TEXTURE_ATLAS_GUI);
 		gui = new AssetGUI(atlas);	
+	}
+	
+	private void loadMaps(){
+		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
+		FileHandle[] songHandles = Gdx.files.local(Constants.LOCAL_MAPS_PATH).list();
+		for (FileHandle handle : songHandles){
+			if (handle.isDirectory()){
+				
+				//Naming requirement to have the base map name in snake case
+				String baseMapName = handle.name().toLowerCase().replace(" ", "_");
+				
+				FileHandle[] oggSongs = handle.list(".ogg");
+				FileHandle[] mp3Songs = handle.list(".mp3");
+				
+				//Load song
+				if (oggSongs.length > 0)
+					mAssetManager.load(handle.path() + "/" + oggSongs[0].name(), Music.class);
+				else if (mp3Songs.length > 0)
+					mAssetManager.load(handle.path() + "/" + mp3Songs[0].name(), Music.class);
+				else
+					continue;
+				mAssetManager.finishLoading();
+				
+				FileHandle[] tiledMapHandles = handle.list(".tmx");
+				for (Difficulty dif : Difficulty.values())
+					loadMap(dif, baseMapName, tiledMapHandles);
+			}
+		}
+	}
+	
+	private void loadMap(Difficulty difficulty, String baseMapName, FileHandle[] tiledMapHandles){
+		
+		String dif = "";
+		switch(difficulty){
+		case Easy:
+			dif = "_easy";
+			break;
+		case Medium:
+			dif = "_medium";
+			break;
+		case Hard:
+			dif = "_hard";
+			break;
+		}
+		
+		String leftPath = "";
+		String rightPath = "";
+		for (FileHandle mapHandle : tiledMapHandles){
+			if (mapHandle.nameWithoutExtension().
+					equals(baseMapName + dif + "_left")){
+				leftPath = mapHandle.path();
+			}
+			else if (mapHandle.nameWithoutExtension().
+					equals(baseMapName + dif + "_right")){
+				rightPath = mapHandle.path();
+			}
+		}
+		if (!leftPath.equals("") && !rightPath.equals("")){
+			mAssetManager.load(leftPath, TiledMap.class);
+			mAssetManager.load(rightPath, TiledMap.class);
+		}
 	}
 
 	@Override
@@ -93,7 +150,6 @@ public class Assets implements Disposable, AssetErrorListener{
 	public void dispose() {	
 		mAssetManager.dispose();
 		fonts.defaultFont.dispose();
-		music.paperPlanes.dispose();
 	}
 	
 	public class AssetGUI{
@@ -142,11 +198,12 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	public class AssetMusic{
 		
-		public final Music paperPlanes;
 		public final Music sync;
+		public final HashMap<String, Music> musicMap;
 		AssetMusic(AssetManager am){
-			paperPlanes = am.get("music/paper_planes.ogg", Music.class);
 			sync = am.get("music/sync.ogg", Music.class);
+			musicMap = new HashMap<String, Music>();
+			musicMap.put("Paper Planes", am.get("../android/assets/maps/Paper Planes/paper_planes.ogg", Music.class));
 		}	
 	}
 	
@@ -160,19 +217,76 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	public class AssetMap{
 		
-		public final HashMap<String, TiledMap> leftMaps;
-		public final HashMap<String, TiledMap> rightMaps;
+		public final HashMap<String, SongData> dataMap;
 		AssetMap(AssetManager am){
-			leftMaps = new HashMap<String, TiledMap>();
-			rightMaps = new HashMap<String, TiledMap>();
-			for (SongData data : Options.instance.songsData){
-				for (Difficulty dif : Difficulty.values()){
-					leftMaps.put(data.getLeftPath(dif), am.get(data.getLeftPath(dif), TiledMap.class));
-					rightMaps.put(data.getRightPath(dif), am.get(data.getRightPath(dif), TiledMap.class));
-				}				
+			
+			dataMap = new HashMap<String, SongData>();
+			
+			FileHandle[] songHandles = Gdx.files.local(Constants.LOCAL_MAPS_PATH).list();
+			for (FileHandle handle : songHandles){
+				if (handle.isDirectory()){
+					SongData data = new SongData(handle.name());
+					String basePath = handle.path() + "/" + handle.name().toLowerCase().replace(" ", "_");
+					
+					//Used to get song information that is present in any map
+					TiledMap map = null;
+					
+					//Easy maps
+					String easyPath = basePath + "_easy_";
+					if (am.isLoaded(easyPath + "left.tmx")){
+						data.setEasyMaps(
+								am.get(easyPath + "left.tmx", TiledMap.class), 
+								am.get(easyPath + "right.tmx", TiledMap.class));
+						map = am.get(easyPath + "left.tmx", TiledMap.class);
+					}
+					
+					//Medium maps
+					String mediumPath = basePath + "_medium_";
+					if (am.isLoaded(mediumPath + "left.tmx")){
+						data.setMediumMaps(
+								am.get(mediumPath + "left.tmx", TiledMap.class), 
+								am.get(mediumPath + "right.tmx", TiledMap.class));
+						map = am.get(mediumPath + "left.tmx", TiledMap.class);
+					}
+					
+					//Hard maps
+					String hardPath = basePath + "_hard_";
+					if (am.isLoaded(hardPath + "left.tmx")){
+						data.setHardMaps(
+								am.get(hardPath + "left.tmx", TiledMap.class), 
+								am.get(hardPath + "right.tmx", TiledMap.class));
+						map = am.get(hardPath + "left.tmx", TiledMap.class);
+					}
+					if (map == null) return;
+					MapProperties props = map.getProperties();
+					
+					String bpmStr= map.getProperties().get("bpm", String.class);
+					float bpm = (float) Double.parseDouble(bpmStr);
+					data.setBpm(bpm);
+					
+					String offsetStr= map.getProperties().get("offset", String.class);
+					float offset = (float) Double.parseDouble(offsetStr);
+					data.setOffset(offset);
+					
+					String lenStr= map.getProperties().get("length", String.class);
+					float len = (float) Double.parseDouble(lenStr);
+					data.setLength(len);
+					
+					data.setArtist(props.get("artist", String.class));
+					data.setTitle(props.get("title", String.class));
+					dataMap.put(handle.name(), data);
+				}
 			}
-			leftMaps.put(Constants.SYNC_LEFT_MAP, am.get(Constants.SYNC_LEFT_MAP, TiledMap.class));
-			rightMaps.put(Constants.SYNC_RIGHT_MAP, am.get(Constants.SYNC_RIGHT_MAP, TiledMap.class));
+		}
+	}
+	
+	public class AssetSync{
+		
+		public final TiledMap left;
+		public final TiledMap right;
+		AssetSync(AssetManager am){
+			left = am.get(Constants.SYNC_LEFT_MAP, TiledMap.class);
+			right = am.get(Constants.SYNC_RIGHT_MAP, TiledMap.class);
 		}
 	}
 	
