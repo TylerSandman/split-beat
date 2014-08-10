@@ -12,7 +12,7 @@ public class SongData{
 	
 	private String mArtist;
 	private float mBpm;
-	private float mLengthSeconds;
+	private int mLengthSeconds;
 	private float mOffset;
 	
 	private TiledMap mEasyLeftMap;
@@ -27,7 +27,7 @@ public class SongData{
 		mTitle = "";
 		mArtist = "";
 		mBpm = 0.f;
-		mLengthSeconds = 0.f;
+		mLengthSeconds = 0;
 		mOffset = 0.f;
 		mEasyLeftMap = null;
 		mEasyRightMap = null;
@@ -85,8 +85,8 @@ public class SongData{
 	public String getArtist(){ return mArtist; }
 	public void setBpm(float bpm){ mBpm = bpm; }
 	public float getBpm(){return mBpm; }
-	public void setLength(float seconds){ mLengthSeconds = seconds; }
-	public float getLength(){ return mLengthSeconds; }
+	public void setLength(int seconds){ mLengthSeconds = seconds; }
+	public int getLength(){ return mLengthSeconds; }
 	public void setOffset(float offset){ mOffset = offset; }
 	public float getOffset(){ return mOffset; }
 	

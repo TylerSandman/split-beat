@@ -1,9 +1,18 @@
 package com.splitbeat.game;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 public class SongEditScreen extends AbstractGameScreen {
 	
 	private TmxMapBuilder mBuilder;
@@ -14,7 +23,13 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void init(){
 		mBuilder = new TmxMapBuilder();
-		mBuilder.create("test");
+		SongData data = new SongData("Test Map");
+		data.setArtist("Tyler.S");
+		data.setBpm(170.f);
+		data.setTitle("Test Map");
+		data.setOffset(-0.04f);
+		data.setLength(220);
+		mBuilder.create(data);
 	}
 	
 	@Override

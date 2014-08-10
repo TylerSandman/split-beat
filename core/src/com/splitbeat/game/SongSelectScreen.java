@@ -6,6 +6,7 @@ import java.util.Map;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -115,10 +116,16 @@ public class SongSelectScreen extends AbstractGameScreen {
 					highlightSong(newIndex);
 					break;
 				case(Keys.LEFT):
-					selectDifficulty(mSelectedDifficulty.prev());
+					Difficulty prevSelect = mSelectedDifficulty.prev();
+					while (mSongDataArr.get(mSelectedIndex).getLeftMap(prevSelect) == null)
+						prevSelect = prevSelect.prev();
+					selectDifficulty(prevSelect);
 					break;
 				case(Keys.RIGHT):
-					selectDifficulty(mSelectedDifficulty.next());
+					Difficulty nextSelect = mSelectedDifficulty.next();
+					while (mSongDataArr.get(mSelectedIndex).getLeftMap(nextSelect) == null)
+						nextSelect = nextSelect.next();
+					selectDifficulty(nextSelect);
 					break;
 				case(Keys.ENTER):
 					if (mSelectedIndex < 0) break;
@@ -159,9 +166,23 @@ public class SongSelectScreen extends AbstractGameScreen {
 		songTable.setBackground(mGradientHighlightDrawable);	
 		
 		//Update scores
-		String easyScore = String.format("%.2f", 0.00);
-		String mediumScore = String.format("%.2f", 0.00);
-		String hardScore = String.format("%.2f", 0.00);
+		SongScore scores = Options.instance.getScores(mSongDataArr.get(mSelectedIndex).getName());
+		String easyScore = String.format("%.2f", scores.getEasy());
+		String mediumScore = String.format("%.2f", scores.getMedium());
+		String hardScore = String.format("%.2f", scores.getHard());
+		
+		//Update difficulty table based on available difficulties
+		mEasyScoreLabel.setColor(Color.WHITE);
+		mMediumScoreLabel.setColor(Color.WHITE);
+		mHardScoreLabel.setColor(Color.WHITE);
+		
+		if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Easy) == null)
+			mEasyScoreLabel.setColor(Color.GRAY);
+		if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Medium) == null)
+			mMediumScoreLabel.setColor(Color.GRAY);
+		if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Hard) == null)
+			mHardScoreLabel.setColor(Color.GRAY);
+
 		mEasyScoreLabel.setText(easyScore);
 		mMediumScoreLabel.setText(mediumScore);
 		mHardScoreLabel.setText(hardScore);
@@ -271,9 +292,19 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mHardSlider.setVisible(false);
 		mSelectedDifficulty = Difficulty.Easy;
 		
-		mEasyScoreLabel = new Label("0.00", mSkin);
-		mMediumScoreLabel = new Label("0.00", mSkin);
-		mHardScoreLabel = new Label("0.00", mSkin);
+		
+		String easyScoreStr = "0.00";
+		String mediumScoreStr = "0.00";
+		String hardScoreStr = "0.00";
+		if (mSelectedIndex >= 0){
+			SongScore scores = Options.instance.getScores(mSongDataArr.get(mSelectedIndex).getName());
+			easyScoreStr = String.format("%.2f", scores.getEasy());
+			mediumScoreStr = String.format("%.2f", scores.getMedium());
+			hardScoreStr = String.format("%.2f", scores.getHard());
+		}
+		mEasyScoreLabel = new Label(easyScoreStr, mSkin);
+		mMediumScoreLabel = new Label(mediumScoreStr, mSkin);
+		mHardScoreLabel = new Label(hardScoreStr, mSkin);
 		
 		easyLabel.setAlignment(Align.center);
 		mediumLabel.setAlignment(Align.center);

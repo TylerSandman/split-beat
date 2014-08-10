@@ -269,7 +269,7 @@ public class Assets implements Disposable, AssetErrorListener{
 					data.setOffset(offset);
 					
 					String lenStr= map.getProperties().get("length", String.class);
-					float len = (float) Double.parseDouble(lenStr);
+					int len = Integer.parseInt(lenStr);
 					data.setLength(len);
 					
 					data.setArtist(props.get("artist", String.class));

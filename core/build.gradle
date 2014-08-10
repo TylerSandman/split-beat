@@ -9,3 +9,12 @@ sourceSets.main.java.srcDirs = [ "src/" ]
 eclipse.project {
     name = appName + "-core"
 }
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+   compile 'javazoom:jlayer:1.0.1'
+   compile 'org.jaudiotagger:jaudiotagger:2.0.1'
+}

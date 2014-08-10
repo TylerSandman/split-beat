@@ -7,8 +7,8 @@ public class SplitBeatGame extends Game {
 	
 	@Override
 	public void create(){
-		Options.instance.init();
 		Assets.instance.init(new AssetManager());
+		Options.instance.init();
 		AudioManager.instance.init();		
 		setScreen(new GameScreen(this, "Paper Planes", Difficulty.Easy));
 		setScreen(new MenuScreen(this));

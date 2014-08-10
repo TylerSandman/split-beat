@@ -78,7 +78,7 @@ public class World implements Disposable{
 		mBPM = (float) Double.parseDouble(bpmStr);
 		String offsetStr = mLeftMap.getProperties().get("offset", String.class);
 		mOffset = (float) Double.parseDouble(offsetStr);
-		mOffset += Options.instance.offset;
+		mOffset += Options.instance.getOffset();
 		
 		//Parse tracks
 		mLeftNotes = new ArrayList<Note>();

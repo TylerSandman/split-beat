@@ -25,7 +25,7 @@ public class SyncWorld extends World {
 		mNoteTimings = new float[Constants.NUM_SYNC_CALCULATION_BEATS];
 		
 		mTimingIndex = 0;
-		mCalculatedOffset = Options.instance.offset;
+		mCalculatedOffset = Options.instance.getOffset();
 	}
 	
 	@Override
