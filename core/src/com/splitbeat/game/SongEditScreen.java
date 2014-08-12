@@ -2,14 +2,18 @@ package com.splitbeat.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 public class SongEditScreen extends AbstractGameScreen {
 	
 	private TmxMapBuilder mBuilder;
@@ -79,6 +83,36 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		buildButtons();
 		buildStage();
+		
+		mStage.addListener(new InputListener(){
+			
+			@Override
+			public boolean keyDown(InputEvent event, int keycode){
+				int newIndex;
+				Difficulty newDifficulty;
+				switch(keycode){
+				case(Keys.DOWN):
+					//TODO SWITCH NOTE DOWN
+					break;
+				case(Keys.UP):
+					//TODO SWITCH NOTE UP
+					break;
+				case(Keys.LEFT):
+					//TODO MOVE TRACK LEFT
+					break;
+				case(Keys.RIGHT):
+					//TODO MOVE TRACK RIGHT
+					break;
+				case(Keys.ENTER):
+					 //TODO SOMETHING
+					break;
+				case(Keys.ESCAPE):
+					//TODO SOMETHING
+					break;
+				}
+				return true;
+			}
+		});
 	}
 	
 	private void buildButtons(){
@@ -87,6 +121,38 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightButton = new Image(Assets.instance.gui.rightArrow);
 		mUpButton = new Image(Assets.instance.gui.upArrow);
 		mDownButton = new Image(Assets.instance.gui.downArrow);
+		
+		mLeftButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				//TODO MOVE TRACK LEFT
+				return true;
+			}
+		});
+		
+		mRightButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				//TODO MOVE TRACK RIGHT
+				return true;
+			}
+		});
+		
+		mUpButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				//TODO MOVE TRACK UP
+				return true;
+			}
+		});
+		
+		mDownButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				//TODO MOVE TRACK DOWN
+				return true;
+			}
+		});
 	}
 	
 	private void buildStage(){
