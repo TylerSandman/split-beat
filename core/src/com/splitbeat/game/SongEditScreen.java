@@ -1,10 +1,13 @@
 package com.splitbeat.game;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -14,6 +17,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.splitbeat.game.Constants.NoteSlot;
+import com.splitbeat.game.Constants.NoteType;
 public class SongEditScreen extends AbstractGameScreen {
 	
 	private TmxMapBuilder mBuilder;
@@ -21,14 +26,24 @@ public class SongEditScreen extends AbstractGameScreen {
 	private OrthographicCamera mRightCamera;
 	private OrthographicCamera mHUDCamera;
 	
+	private ArrayList<BPMMarker> mLeftMarkers;
+	private ArrayList<BPMMarker> mRightMarkers;
+	private ArrayList<Note> mLeftNotes;
+	private ArrayList<Note> mRightNotes;
+	private OutlineNote[] mLeftOutlines;
+	private OutlineNote[] mRightOutlines;
+	
 	private Stage mStage;
 	private Skin mSkin;
 	private ShapeRenderer mShapeRenderer;
+	SpriteBatch mBatch;
 	
 	private Image mLeftButton;
 	private Image mRightButton;
 	private Image mUpButton;
 	private Image mDownButton;
+	
+	private ScoreManager mScoreManager;
 	
 	SongEditScreen(Game game){
 		super(game);
@@ -38,6 +53,12 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		mBuilder = new TmxMapBuilder();
 		mShapeRenderer = new ShapeRenderer();
+		mBatch = new SpriteBatch();
+		mLeftMarkers = new ArrayList<BPMMarker>();
+		mRightMarkers = new ArrayList<BPMMarker>();
+		mLeftNotes = new ArrayList<Note>();
+		mRightNotes = new ArrayList<Note>();
+		mScoreManager = new ScoreManager();
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -113,6 +134,29 @@ public class SongEditScreen extends AbstractGameScreen {
 				return true;
 			}
 		});
+		
+		mLeftOutlines = new OutlineNote[]{
+				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
+				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
+				new OutlineNote(NoteSlot.BOTTOM_LEFT, mScoreManager)
+		};
+		
+		//Center outlines relative to track and up/down buttons
+		for(OutlineNote note : mLeftOutlines){
+			note.setPosition(
+					mLeftCamera.position.x - note.getBounds().width / 2.f,
+					mLeftCamera.position.y - note.getBounds().height / 2.f);
+		}
+		
+		//Move to appropriate slots
+		float moveIncrement = 2 * mLeftCamera.viewportHeight / 7;
+		mLeftOutlines[0].moveBy(0, -moveIncrement);
+		mLeftOutlines[2].moveBy(0, moveIncrement);
+		
+		//Move to starting position (beat 0)
+		for(OutlineNote note : mLeftOutlines){
+			note.moveBy(mLeftCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		}
 	}
 	
 	private void buildButtons(){
@@ -210,14 +254,25 @@ public class SongEditScreen extends AbstractGameScreen {
 		Gdx.input.setCatchBackKey(false);
 		mStage.dispose();
 		mSkin.dispose();
+		mBatch.dispose();
+		mShapeRenderer.dispose();
+	}
+	
+	public void update(float delta){
+		
+		for(Note note : mLeftNotes){
+			note.update(delta);
+		}
 	}
 
 	@Override
 	public void render(float delta) {
 		
 		mStage.act(delta);
+		update(delta);
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mShapeRenderer.begin(ShapeType.Filled);
 		mShapeRenderer.setColor(0, 1, 0, 1);
 		mShapeRenderer.rect(
@@ -226,7 +281,36 @@ public class SongEditScreen extends AbstractGameScreen {
 				mLeftCamera.viewportWidth,
 				mLeftCamera.viewportHeight);
 		mShapeRenderer.end();
-		mStage.draw();		
+		mStage.draw();	
+		renderTrack();
+	}
+	
+	private void renderTrack(){
+
+		mBatch.setProjectionMatrix(mLeftCamera.combined);
+		Gdx.gl.glViewport(
+				(int)(Gdx.graphics.getWidth() / 2 - mLeftCamera.viewportWidth / 2), 
+				(int)(Gdx.graphics.getHeight() / 2 + mLeftCamera.position.y - mLeftCamera.viewportHeight / 2), 
+				(int)mLeftCamera.viewportWidth, 
+				(int)mLeftCamera.viewportHeight);
+		mBatch.begin();
+		renderOutlines();
+		renderNotes();
+		mBatch.end();
+	}
+	
+	private void renderOutlines(){
+		
+		for(OutlineNote note : mLeftOutlines){
+			note.render(mBatch);
+		}
+	}
+	
+	private void renderNotes(){
+		
+		for(Note note : mLeftNotes){
+			note.render(mBatch);
+		}
 	}
 
 	@Override
@@ -234,5 +318,35 @@ public class SongEditScreen extends AbstractGameScreen {
 
 	@Override
 	public void pause() {}
+	
+	private void placeNote(float beat, NoteSlot slot, NoteType type){
+		
+		Note note = new Note(beat, slot, type, mScoreManager);
+		
+		//Center note relative to track and up/down buttons
+		note.setPosition(
+				mLeftCamera.position.x - note.getBounds().width / 2.f,
+				mLeftCamera.position.y - note.getBounds().height / 2.f);
+		
+		//Move to appropriate slot
+		float moveIncrement = 2 * mLeftCamera.viewportHeight / 7;
+		switch(slot){
+		case MIDDLE_LEFT:
+			break;
+		case TOP_LEFT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_LEFT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		}
+		
+		//Move to starting position (beat 0)
+		note.moveBy(mLeftCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+
+		mLeftNotes.add(note);
+	}
+	
+	
 
 }

@@ -36,5 +36,17 @@ public abstract class AbstractGameObject {
 		mFlaggedForRemoval = true;
 	}
 	
+	public void moveBy(float x, float y){
+		mSprite.translate(x, y);
+	}
+	
+	public void setPosition(float x, float y){
+		mSprite.setPosition(x, y);
+	}
+	
+	public void setOrigin(float x, float y){
+		mSprite.setOrigin(x, y);
+	}
+	
 	public abstract void render(SpriteBatch batch);
 }
