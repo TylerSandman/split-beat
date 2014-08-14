@@ -71,9 +71,9 @@ public class OutlineNote extends Note {
 	@Override
 	public void render(SpriteBatch batch){
 		
-		//Set blending to addition for laser-like effect
+		//Set blending for proper transparency
 		batch.end();
-		batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+		batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		batch.begin();
 		
 		//Apply calculated alpha for decay effect on glow outline

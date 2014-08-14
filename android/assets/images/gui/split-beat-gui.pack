@@ -66,25 +66,81 @@ down_arrow
   orig: 80, 80
   offset: 0, 0
   index: -1
-left_arrow
+down_arrow2
   rotate: false
   xy: 385, 123
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-right_arrow
+down_arrow3
   rotate: false
   xy: 467, 123
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-up_arrow
+down_arrow4
   rotate: false
   xy: 577, 170
   size: 80, 80
   orig: 80, 80
+  offset: 0, 0
+  index: -1
+down_arrow5
+  rotate: false
+  xy: 659, 170
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+left_arrow
+  rotate: false
+  xy: 741, 170
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+left_arrow2
+  rotate: false
+  xy: 823, 170
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+right_arrow
+  rotate: false
+  xy: 905, 170
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+right_arrow2
+  rotate: false
+  xy: 377, 41
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+up_arrow
+  rotate: false
+  xy: 459, 41
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+red_boxTick
+  rotate: false
+  xy: 987, 214
+  size: 36, 36
+  orig: 36, 36
+  offset: 0, 0
+  index: -1
+red_circle
+  rotate: false
+  xy: 987, 176
+  size: 36, 36
+  orig: 36, 36
   offset: 0, 0
   index: -1
 red_button03
@@ -96,112 +152,126 @@ red_button03
   index: -1
 red_button04
   rotate: false
-  xy: 659, 201
+  xy: 52, 1
   size: 49, 49
   orig: 49, 49
   offset: 0, 0
   index: -1
 red_button06
   rotate: false
-  xy: 52, 1
+  xy: 103, 1
   size: 49, 49
   orig: 49, 49
   offset: 0, 0
   index: -1
 red_button08
   rotate: false
-  xy: 710, 201
+  xy: 154, 1
   size: 49, 49
   orig: 49, 49
   offset: 0, 0
   index: -1
+up_arrow2
+  rotate: false
+  xy: 549, 88
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+up_arrow3
+  rotate: false
+  xy: 631, 88
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+up_arrow4
+  rotate: false
+  xy: 713, 88
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
+up_arrow5
+  rotate: false
+  xy: 795, 88
+  size: 80, 80
+  orig: 80, 80
+  offset: 0, 0
+  index: -1
 red_button05
   rotate: false
-  xy: 103, 5
+  xy: 205, 5
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_button07
   rotate: false
-  xy: 761, 205
+  xy: 877, 123
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_button09
   rotate: false
-  xy: 154, 5
+  xy: 928, 123
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_boxCheckmark
   rotate: false
-  xy: 812, 214
+  xy: 256, 14
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
 red_boxCross
   rotate: false
-  xy: 205, 14
+  xy: 877, 85
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
-red_boxTick
-  rotate: false
-  xy: 852, 214
-  size: 36, 36
-  orig: 36, 36
-  offset: 0, 0
-  index: -1
-red_circle
-  rotate: false
-  xy: 245, 14
-  size: 36, 36
-  orig: 36, 36
-  offset: 0, 0
-  index: -1
 green_sliderRight
   rotate: false
-  xy: 890, 219
-  size: 39, 31
-  orig: 39, 31
-  offset: 0, 0
-  index: -1
-red_sliderLeft
-  rotate: false
-  xy: 931, 219
-  size: 39, 31
-  orig: 39, 31
-  offset: 0, 0
-  index: -1
-red_sliderRight
-  rotate: false
-  xy: 972, 219
-  size: 39, 31
-  orig: 39, 31
-  offset: 0, 0
-  index: -1
-yellow_sliderRight
-  rotate: false
-  xy: 659, 168
+  xy: 917, 90
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 red_sliderDown
   rotate: false
-  xy: 377, 79
+  xy: 541, 44
   size: 28, 42
   orig: 28, 42
   offset: 0, 0
   index: -1
+red_sliderLeft
+  rotate: false
+  xy: 571, 55
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+red_sliderRight
+  rotate: false
+  xy: 612, 55
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+yellow_sliderRight
+  rotate: false
+  xy: 653, 55
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
 red_sliderUp
   rotate: false
-  xy: 407, 79
+  xy: 694, 44
   size: 28, 42
   orig: 28, 42
   offset: 0, 0
@@ -222,21 +292,21 @@ red_cross
   index: -1
 red_tick
   rotate: false
-  xy: 283, 33
+  xy: 958, 104
   size: 17, 17
   orig: 17, 17
   offset: 0, 0
   index: -1
 gradient_repeat
   rotate: false
-  xy: 1013, 240
+  xy: 724, 76
   size: 10, 10
   orig: 10, 10
   offset: 0, 0
   index: -1
 gradient_repeat_highlight
   rotate: false
-  xy: 1013, 228
+  xy: 549, 171
   size: 10, 10
   orig: 10, 10
   offset: 0, 0

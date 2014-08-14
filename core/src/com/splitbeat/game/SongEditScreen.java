@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -25,6 +26,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private OrthographicCamera mLeftCamera;
 	private OrthographicCamera mRightCamera;
 	private OrthographicCamera mHUDCamera;
+	private SongData mData;
 	
 	private ArrayList<BPMMarker> mLeftMarkers;
 	private ArrayList<BPMMarker> mRightMarkers;
@@ -32,6 +34,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	private ArrayList<Note> mRightNotes;
 	private OutlineNote[] mLeftOutlines;
 	private OutlineNote[] mRightOutlines;
+	private Color[] mNoteColors;
+	private int[] mNoteQuantizations;
 	
 	private Stage mStage;
 	private Skin mSkin;
@@ -42,6 +46,9 @@ public class SongEditScreen extends AbstractGameScreen {
 	private Image mRightButton;
 	private Image mUpButton;
 	private Image mDownButton;
+	
+	private float mCurrentBeat;
+	private int mColorIndex;
 	
 	private ScoreManager mScoreManager;
 	
@@ -54,24 +61,43 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBuilder = new TmxMapBuilder();
 		mShapeRenderer = new ShapeRenderer();
 		mBatch = new SpriteBatch();
-		mLeftMarkers = new ArrayList<BPMMarker>();
 		mRightMarkers = new ArrayList<BPMMarker>();
-		mLeftNotes = new ArrayList<Note>();
+		mRightMarkers = new ArrayList<BPMMarker>();
+		mRightNotes = new ArrayList<Note>();
 		mRightNotes = new ArrayList<Note>();
 		mScoreManager = new ScoreManager();
+		mNoteColors = new Color[]{
+				Color.RED,
+				Color.BLUE,
+				Color.PURPLE,
+				Color.GREEN,
+				Color.YELLOW,
+				//Darker orange
+				new Color(1.f, 0.5f, 0.0f, 1.f)
+		};
+		mNoteQuantizations = new int[]{
+				1,
+				2,
+				3,
+				4,
+				6,
+				8
+		};
+		mCurrentBeat = 0.f;
+		mColorIndex = 0;
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
 				new TextureAtlas(Constants.TEXTURE_ATLAS_GUI));
 		
 		//Dummy data for now
-		SongData data = new SongData("Test Map");
-		data.setArtist("Tyler.S");
-		data.setBpm(170.f);
-		data.setTitle("Test Map");
-		data.setOffset(-0.04f);
-		data.setLength(220);
-		mBuilder.create(data);
+		mData = new SongData("Test Map");
+		mData.setArtist("Tyler.S");
+		mData.setBpm(170.f);
+		mData.setTitle("Test Map");
+		mData.setOffset(-0.04f);
+		mData.setLength(220);
+		mBuilder.create(mData);
 		
 		//Configure cameras
 		float w = Gdx.graphics.getWidth();
@@ -83,18 +109,18 @@ public class SongEditScreen extends AbstractGameScreen {
 		float trackHeight = Gdx.graphics.getHeight() * 0.5f;
 		
 		float h = Gdx.graphics.getHeight();
-		mRightCamera = new OrthographicCamera(trackWidth, trackHeight);
 		mLeftCamera = new OrthographicCamera(trackWidth, trackHeight);
+		mRightCamera = new OrthographicCamera(trackWidth, trackHeight);
 		
 		//Move cameras to bottom of screen
-		float camTranslate = -Gdx.graphics.getHeight() / 2.f + mLeftCamera.viewportHeight / 2.f;
-		mRightCamera.translate(0, camTranslate);		
-		mLeftCamera.translate(0, camTranslate);
+		float camTranslate = -Gdx.graphics.getHeight() / 2.f + mRightCamera.viewportHeight / 2.f;
+		mLeftCamera.translate(0, camTranslate);		
+		mRightCamera.translate(0, camTranslate);
 		
 		//Move up to make room for GUI + padding
 		float camPadTranslate = Assets.instance.gui.downArrow.getRegionHeight() + 2 * Constants.CELL_PADDING;	
-		mRightCamera.translate(0, camPadTranslate);
 		mLeftCamera.translate(0, camPadTranslate);
+		mRightCamera.translate(0, camPadTranslate);
 		
 		mHUDCamera = new OrthographicCamera(w, h);
 		mHUDCamera.position.set(0, 0, 0);
@@ -105,24 +131,25 @@ public class SongEditScreen extends AbstractGameScreen {
 		buildButtons();
 		buildStage();
 		
+		placeNote(1, NoteSlot.MIDDLE_RIGHT, NoteType.QUARTER);
+		placeNote(2, NoteSlot.MIDDLE_RIGHT, NoteType.EIGHTH);
+		
 		mStage.addListener(new InputListener(){
 			
 			@Override
 			public boolean keyDown(InputEvent event, int keycode){
-				int newIndex;
-				Difficulty newDifficulty;
 				switch(keycode){
 				case(Keys.DOWN):
-					//TODO SWITCH NOTE DOWN
+					onDownPress();
 					break;
 				case(Keys.UP):
-					//TODO SWITCH NOTE UP
+					onUpPress();
 					break;
 				case(Keys.LEFT):
-					//TODO MOVE TRACK LEFT
+					onLeftPress();
 					break;
 				case(Keys.RIGHT):
-					//TODO MOVE TRACK RIGHT
+					onRightPress();
 					break;
 				case(Keys.ENTER):
 					 //TODO SOMETHING
@@ -135,27 +162,27 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		});
 		
-		mLeftOutlines = new OutlineNote[]{
+		mRightOutlines = new OutlineNote[]{
 				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
 				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
 				new OutlineNote(NoteSlot.BOTTOM_LEFT, mScoreManager)
 		};
 		
 		//Center outlines relative to track and up/down buttons
-		for(OutlineNote note : mLeftOutlines){
+		for(OutlineNote note : mRightOutlines){
 			note.setPosition(
-					mLeftCamera.position.x - note.getBounds().width / 2.f,
-					mLeftCamera.position.y - note.getBounds().height / 2.f);
+					mRightCamera.position.x - note.getBounds().width / 2.f,
+					mRightCamera.position.y - note.getBounds().height / 2.f);
 		}
 		
 		//Move to appropriate slots
-		float moveIncrement = 2 * mLeftCamera.viewportHeight / 7;
-		mLeftOutlines[0].moveBy(0, -moveIncrement);
-		mLeftOutlines[2].moveBy(0, moveIncrement);
+		float moveIncrement = 2 * mRightOutlines[0].getBounds().height - mRightOutlines[0].getBounds().height / 2;
+		mRightOutlines[0].moveBy(0, -moveIncrement);
+		mRightOutlines[2].moveBy(0, moveIncrement);
 		
 		//Move to starting position (beat 0)
-		for(OutlineNote note : mLeftOutlines){
-			note.moveBy(mLeftCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		for(OutlineNote note : mRightOutlines){
+			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		}
 	}
 	
@@ -166,10 +193,13 @@ public class SongEditScreen extends AbstractGameScreen {
 		mUpButton = new Image(Assets.instance.gui.upArrow);
 		mDownButton = new Image(Assets.instance.gui.downArrow);
 		
+		mUpButton.setColor(Color.RED);
+		mDownButton.setColor(Color.RED);
+		
 		mLeftButton.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				//TODO MOVE TRACK LEFT
+				onLeftPress();
 				return true;
 			}
 		});
@@ -177,7 +207,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightButton.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				//TODO MOVE TRACK RIGHT
+				onRightPress();
 				return true;
 			}
 		});
@@ -185,7 +215,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mUpButton.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				//TODO MOVE TRACK UP
+				onUpPress();
 				return true;
 			}
 		});
@@ -193,7 +223,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mDownButton.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				//TODO MOVE TRACK DOWN
+				onDownPress();
 				return true;
 			}
 		});
@@ -207,7 +237,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mStage.addActor(mDownButton);
 		
 		//Center origins	
-		mLeftButton.moveBy(-mLeftButton.getWidth() / 2.f, -mLeftButton.getHeight() / 2.f);
+		mLeftButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
 		mRightButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
 		mUpButton.moveBy(-mUpButton.getWidth() / 2.f, -mUpButton.getHeight() / 2.f);
 		mDownButton.moveBy(-mDownButton.getWidth() / 2.f, -mDownButton.getHeight() / 2.f);
@@ -219,24 +249,24 @@ public class SongEditScreen extends AbstractGameScreen {
 		mDownButton.moveBy(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2);
 		
 		//Translate to align with track
-		mLeftButton.moveBy(0, mLeftCamera.position.y);
-		mRightButton.moveBy(0, mLeftCamera.position.y);
-		mUpButton.moveBy(0, mLeftCamera.position.y);
-		mDownButton.moveBy(0, mLeftCamera.position.y);
+		mLeftButton.moveBy(0, mRightCamera.position.y);
+		mRightButton.moveBy(0, mRightCamera.position.y);
+		mUpButton.moveBy(0, mRightCamera.position.y);
+		mDownButton.moveBy(0, mRightCamera.position.y);
 		
 		//Move relative to track
 		mLeftButton.moveBy(
-				-mLeftCamera.viewportWidth / 2 - mLeftButton.getWidth() / 2.f - Constants.CELL_PADDING,
+				-mRightCamera.viewportWidth / 2 - mRightButton.getWidth() / 2.f - Constants.CELL_PADDING,
 				0);
 		mRightButton.moveBy(
-				mLeftCamera.viewportWidth / 2 + mRightButton.getWidth() /2.f + Constants.CELL_PADDING,
+				mRightCamera.viewportWidth / 2 + mRightButton.getWidth() /2.f + Constants.CELL_PADDING,
 				0);
 		mUpButton.moveBy(
-				mLeftCamera.viewportWidth / 2 - mUpButton.getWidth(),
-				mLeftCamera.viewportHeight / 2 + mUpButton.getHeight() / 2 + Constants.CELL_PADDING);
+				mRightCamera.viewportWidth / 2 - mUpButton.getWidth(),
+				mRightCamera.viewportHeight / 2 + mUpButton.getHeight() / 2 + Constants.CELL_PADDING);
 		mDownButton.moveBy(
-				mLeftCamera.viewportWidth / 2 - mDownButton.getWidth(),
-				-mLeftCamera.viewportHeight / 2 - mDownButton.getHeight() / 2 - Constants.CELL_PADDING);
+				mRightCamera.viewportWidth / 2 - mDownButton.getWidth(),
+				-mRightCamera.viewportHeight / 2 - mDownButton.getHeight() / 2 - Constants.CELL_PADDING);
 		
 	}
 	
@@ -259,10 +289,6 @@ public class SongEditScreen extends AbstractGameScreen {
 	}
 	
 	public void update(float delta){
-		
-		for(Note note : mLeftNotes){
-			note.update(delta);
-		}
 	}
 
 	@Override
@@ -273,26 +299,43 @@ public class SongEditScreen extends AbstractGameScreen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.gl.glViewport(
+				(int)(Gdx.graphics.getWidth() / 2 - mRightCamera.viewportWidth / 2), 
+				(int)(Gdx.graphics.getHeight() / 2 + mRightCamera.position.y - mRightCamera.viewportHeight / 2), 
+				(int)mRightCamera.viewportWidth, 
+				(int)mRightCamera.viewportHeight);
+		mShapeRenderer.setProjectionMatrix(mRightCamera.combined);
+		
 		mShapeRenderer.begin(ShapeType.Filled);
 		mShapeRenderer.setColor(0, 1, 0, 1);
-		mShapeRenderer.rect(
-				Gdx.graphics.getWidth() / 2.f - mLeftCamera.viewportWidth / 2.f,
-				Gdx.graphics.getHeight() / 2.f - mLeftCamera.viewportHeight / 2.f + mLeftCamera.position.y,
-				mLeftCamera.viewportWidth,
-				mLeftCamera.viewportHeight);
 		mShapeRenderer.end();
+		
+		mShapeRenderer.begin(ShapeType.Line);
+		mShapeRenderer.setColor(Color.WHITE);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		for (int i = 0; i < (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
+			mShapeRenderer.line(
+				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
+				mRightCamera.position.y + mRightCamera.viewportHeight / 2.f,
+				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
+				mRightCamera.position.y - mRightCamera.viewportHeight / 2.f);
+		}
+		
+		mShapeRenderer.end();
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mStage.draw();	
 		renderTrack();
 	}
 	
 	private void renderTrack(){
 
-		mBatch.setProjectionMatrix(mLeftCamera.combined);
+		mBatch.setProjectionMatrix(mRightCamera.combined);
+		mBatch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 		Gdx.gl.glViewport(
-				(int)(Gdx.graphics.getWidth() / 2 - mLeftCamera.viewportWidth / 2), 
-				(int)(Gdx.graphics.getHeight() / 2 + mLeftCamera.position.y - mLeftCamera.viewportHeight / 2), 
-				(int)mLeftCamera.viewportWidth, 
-				(int)mLeftCamera.viewportHeight);
+				(int)(Gdx.graphics.getWidth() / 2 - mRightCamera.viewportWidth / 2), 
+				(int)(Gdx.graphics.getHeight() / 2 + mRightCamera.position.y - mRightCamera.viewportHeight / 2), 
+				(int)mRightCamera.viewportWidth, 
+				(int)mRightCamera.viewportHeight);
 		mBatch.begin();
 		renderOutlines();
 		renderNotes();
@@ -301,14 +344,14 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void renderOutlines(){
 		
-		for(OutlineNote note : mLeftOutlines){
+		for(OutlineNote note : mRightOutlines){
 			note.render(mBatch);
 		}
 	}
 	
 	private void renderNotes(){
-		
-		for(Note note : mLeftNotes){
+		Gdx.gl20.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
+		for(Note note : mRightNotes){
 			note.render(mBatch);
 		}
 	}
@@ -325,11 +368,11 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Center note relative to track and up/down buttons
 		note.setPosition(
-				mLeftCamera.position.x - note.getBounds().width / 2.f,
-				mLeftCamera.position.y - note.getBounds().height / 2.f);
+				mRightCamera.position.x - note.getBounds().width / 2.f,
+				mRightCamera.position.y - note.getBounds().height / 2.f);
 		
 		//Move to appropriate slot
-		float moveIncrement = 2 * mLeftCamera.viewportHeight / 7;
+		float moveIncrement = 2 * note.getBounds().height - note.getBounds().height / 2;
 		switch(slot){
 		case MIDDLE_LEFT:
 			break;
@@ -342,11 +385,47 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Move to starting position (beat 0)
-		note.moveBy(mLeftCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
-
-		mLeftNotes.add(note);
+		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		//Move to appropriate beat
+		float measureWidthPixels = note.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		note.moveBy(beat * -measureWidthPixels, 0);
+		
+		mRightNotes.add(note);
 	}
 	
+	private void onLeftPress(){
+		
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		mRightCamera.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		mRightCamera.update();
+		for(OutlineNote note : mRightOutlines){
+			note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		}
+	}
 	
-
+	private void onRightPress(){
+		
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		mRightCamera.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		mRightCamera.update();
+		for(OutlineNote note : mRightOutlines){
+			note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		}
+		
+	}
+	
+	private void onUpPress(){
+		
+		mColorIndex = (mColorIndex + mNoteColors.length - 1) % mNoteColors.length;
+		mUpButton.setColor(mNoteColors[mColorIndex]);
+		mDownButton.setColor(mNoteColors[mColorIndex]);
+	}
+	
+	private void onDownPress(){
+		
+		mColorIndex = (mColorIndex + 1) % mNoteColors.length;
+		mUpButton.setColor(mNoteColors[mColorIndex]);
+		mDownButton.setColor(mNoteColors[mColorIndex]);		
+	}
 }
