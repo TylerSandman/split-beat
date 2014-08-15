@@ -38,10 +38,14 @@ public abstract class AbstractGameObject {
 	
 	public void moveBy(float x, float y){
 		mSprite.translate(x, y);
+		position.x += x;
+		position.y += y;
 	}
 	
 	public void setPosition(float x, float y){
 		mSprite.setPosition(x, y);
+		position.x = x;
+		position.y = y;
 	}
 	
 	public void setOrigin(float x, float y){

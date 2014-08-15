@@ -73,58 +73,44 @@ down_arrow2
   orig: 80, 80
   offset: 0, 0
   index: -1
-down_arrow3
+left_arrow
   rotate: false
   xy: 467, 123
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-down_arrow4
+left_arrow2
   rotate: false
   xy: 577, 170
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-down_arrow5
+right_arrow
   rotate: false
   xy: 659, 170
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-left_arrow
+right_arrow2
   rotate: false
   xy: 741, 170
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-left_arrow2
+up_arrow
   rotate: false
   xy: 823, 170
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
   index: -1
-right_arrow
+up_arrow2
   rotate: false
   xy: 905, 170
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-right_arrow2
-  rotate: false
-  xy: 377, 41
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-up_arrow
-  rotate: false
-  xy: 459, 41
   size: 80, 80
   orig: 80, 80
   offset: 0, 0
@@ -171,34 +157,6 @@ red_button08
   orig: 49, 49
   offset: 0, 0
   index: -1
-up_arrow2
-  rotate: false
-  xy: 549, 88
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-up_arrow3
-  rotate: false
-  xy: 631, 88
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-up_arrow4
-  rotate: false
-  xy: 713, 88
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
-up_arrow5
-  rotate: false
-  xy: 795, 88
-  size: 80, 80
-  orig: 80, 80
-  offset: 0, 0
-  index: -1
 red_button05
   rotate: false
   xy: 205, 5
@@ -208,70 +166,70 @@ red_button05
   index: -1
 red_button07
   rotate: false
-  xy: 877, 123
+  xy: 377, 76
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_button09
   rotate: false
-  xy: 928, 123
+  xy: 428, 76
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_boxCheckmark
   rotate: false
-  xy: 256, 14
+  xy: 479, 85
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
 red_boxCross
   rotate: false
-  xy: 877, 85
+  xy: 256, 14
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
-green_sliderRight
-  rotate: false
-  xy: 917, 90
-  size: 39, 31
-  orig: 39, 31
-  offset: 0, 0
-  index: -1
 red_sliderDown
   rotate: false
-  xy: 541, 44
+  xy: 519, 79
   size: 28, 42
   orig: 28, 42
   offset: 0, 0
   index: -1
+green_sliderRight
+  rotate: false
+  xy: 296, 39
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
 red_sliderLeft
   rotate: false
-  xy: 571, 55
+  xy: 337, 39
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 red_sliderRight
   rotate: false
-  xy: 612, 55
+  xy: 378, 43
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 yellow_sliderRight
   rotate: false
-  xy: 653, 55
+  xy: 419, 43
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 red_sliderUp
   rotate: false
-  xy: 694, 44
+  xy: 460, 32
   size: 28, 42
   orig: 28, 42
   offset: 0, 0
@@ -285,28 +243,28 @@ red_checkmark
   index: -1
 red_cross
   rotate: false
-  xy: 295, 52
+  xy: 296, 19
   size: 18, 18
   orig: 18, 18
   offset: 0, 0
   index: -1
 red_tick
   rotate: false
-  xy: 958, 104
+  xy: 549, 164
   size: 17, 17
   orig: 17, 17
   offset: 0, 0
   index: -1
 gradient_repeat
   rotate: false
-  xy: 724, 76
+  xy: 316, 27
   size: 10, 10
   orig: 10, 10
   offset: 0, 0
   index: -1
 gradient_repeat_highlight
   rotate: false
-  xy: 549, 171
+  xy: 549, 152
   size: 10, 10
   orig: 10, 10
   offset: 0, 0

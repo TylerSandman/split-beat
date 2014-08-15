@@ -8,6 +8,7 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -16,7 +17,10 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.splitbeat.game.Constants.NoteSlot;
 import com.splitbeat.game.Constants.NoteType;
@@ -47,8 +51,18 @@ public class SongEditScreen extends AbstractGameScreen {
 	private Image mUpButton;
 	private Image mDownButton;
 	
+	private Table mInformationTable;
+	private Label mCurrentBeatLabel;
+	private Label mCurrentSecondLabel;
+	private Label mSnapToLabel;
+	private Label mLengthLabel;
+	
+	private Fraction mCurrentBeatFraction;
 	private float mCurrentBeat;
+	private float mCurrentSecond;
 	private int mColorIndex;
+	private float mTrackWidth;
+	private float mTrackHeight;
 	
 	private ScoreManager mScoreManager;
 	
@@ -85,6 +99,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		};
 		mCurrentBeat = 0.f;
 		mColorIndex = 0;
+		mCurrentBeatFraction = new Fraction();
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -103,14 +118,17 @@ public class SongEditScreen extends AbstractGameScreen {
 		float w = Gdx.graphics.getWidth();
 		
 		//Trackwidth is as large as possible leaving room for GUI + padding
-		float trackWidth = w - 2 * Assets.instance.gui.leftArrow.getRegionWidth() - 4 * Constants.CELL_PADDING;
+		mTrackWidth = w - 2 * Assets.instance.gui.leftArrow.getRegionWidth() - 4 * Constants.CELL_PADDING;
 		
 		//Same with trackheight
-		float trackHeight = Gdx.graphics.getHeight() * 0.5f;
+		mTrackHeight = Gdx.graphics.getHeight() * 0.5f;
+		
+		float camWidth = mTrackWidth;
+		float camHeight = mTrackHeight + 4 * Assets.instance.fonts.defaultFont.getLineHeight() + 4 * Constants.CELL_PADDING;
 		
 		float h = Gdx.graphics.getHeight();
-		mLeftCamera = new OrthographicCamera(trackWidth, trackHeight);
-		mRightCamera = new OrthographicCamera(trackWidth, trackHeight);
+		mLeftCamera = new OrthographicCamera(camWidth, camHeight);
+		mRightCamera = new OrthographicCamera(camWidth, camHeight);
 		
 		//Move cameras to bottom of screen
 		float camTranslate = -Gdx.graphics.getHeight() / 2.f + mRightCamera.viewportHeight / 2.f;
@@ -129,6 +147,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightCamera.update();
 		
 		buildButtons();
+		buildInformation();
 		buildStage();
 		
 		placeNote(1, NoteSlot.MIDDLE_RIGHT, NoteType.QUARTER);
@@ -229,12 +248,72 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 	}
 	
+	private void buildInformation(){
+		
+		
+		mInformationTable = new Table();
+		
+		Label currentBeatHeader = new Label("Current Beat", mSkin);
+		currentBeatHeader.setAlignment(Align.center);
+		currentBeatHeader.setWrap(true);
+		
+		Label currentSecondHeader = new Label("Current Time", mSkin);
+		currentSecondHeader.setAlignment(Align.center);
+		currentSecondHeader.setWrap(true);
+		
+		Label snapToHeader = new Label("Snap to", mSkin);
+		snapToHeader.setAlignment(Align.center);
+		snapToHeader.setWrap(true);
+		
+		Label songLengthHeader = new Label("Song Length", mSkin);
+		songLengthHeader.setAlignment(Align.center);
+		songLengthHeader.setWrap(true);
+		
+		mCurrentBeatLabel = new Label("", mSkin);
+		mCurrentBeatLabel.setAlignment(Align.center);
+		mCurrentBeatLabel.setWrap(true);
+		
+		mCurrentSecondLabel = new Label("", mSkin);
+		mCurrentSecondLabel.setAlignment(Align.center);
+		mCurrentSecondLabel.setWrap(true);
+		
+		mSnapToLabel = new Label("",  mSkin);
+		mSnapToLabel.setAlignment(Align.center);
+		mSnapToLabel.setWrap(true);
+		
+		mLengthLabel = new Label(Integer.toString(mData.getLength()) + " s", mSkin);
+		mLengthLabel.setAlignment(Align.center);
+		mLengthLabel.setWrap(true);;
+
+		mInformationTable.add(currentBeatHeader).fillX().expandX();
+		mInformationTable.add(currentSecondHeader).fillX().expandX();
+		mInformationTable.add(snapToHeader).fillX().expandX();
+		mInformationTable.add(songLengthHeader).fillX().expandX().row();
+		mInformationTable.add(mCurrentBeatLabel).fillX().expandX();
+		mInformationTable.add(mCurrentSecondLabel).fillX().expandX();
+		mInformationTable.add(mSnapToLabel).fillX().expandX();
+		mInformationTable.add(mLengthLabel).fillX().expandX();
+		mInformationTable.setWidth(mRightCamera.viewportWidth - 2 * Assets.instance.gui.upArrow.getRegionWidth());
+		//mInformationTable.debug();
+
+		//Center the table
+		mInformationTable.setPosition(Gdx.graphics.getWidth() / 2.f, Gdx.graphics.getHeight() / 2.f);
+		
+		float moveX = -mRightCamera.viewportWidth / 2.f;
+		
+		float moveY = mRightCamera.viewportHeight / 2.f + mRightCamera.position.y + Constants.CELL_PADDING;
+		//Move to top left of track viewport
+		mInformationTable.moveBy(moveX, moveY);
+	}
+	
 	private void buildStage(){
 		
 		mStage.addActor(mLeftButton);
 		mStage.addActor(mRightButton);
 		mStage.addActor(mUpButton);
-		mStage.addActor(mDownButton);
+		mStage.addActor(mDownButton);		
+		mStage.addActor(mInformationTable);
+		
 		
 		//Center origins	
 		mLeftButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
@@ -266,8 +345,7 @@ public class SongEditScreen extends AbstractGameScreen {
 				mRightCamera.viewportHeight / 2 + mUpButton.getHeight() / 2 + Constants.CELL_PADDING);
 		mDownButton.moveBy(
 				mRightCamera.viewportWidth / 2 - mDownButton.getWidth(),
-				-mRightCamera.viewportHeight / 2 - mDownButton.getHeight() / 2 - Constants.CELL_PADDING);
-		
+				-mRightCamera.viewportHeight / 2 - mDownButton.getHeight() / 2 - Constants.CELL_PADDING);		
 	}
 	
 	@Override
@@ -289,6 +367,19 @@ public class SongEditScreen extends AbstractGameScreen {
 	}
 	
 	public void update(float delta){
+		
+		String beatStr = String.format("%.3f", mCurrentBeat);
+		mCurrentBeatLabel.setText(beatStr);
+		
+		String secondStr = String.format("%.2f", mCurrentSecond);
+		secondStr += " s";
+		mCurrentSecondLabel.setText(secondStr);
+		
+		int quantization = mNoteQuantizations[mColorIndex];
+		String snapStr = Integer.toString(quantization * 4);
+		snapStr += (quantization == 8) ? "nd" : "th";
+		snapStr += " notes";
+		mSnapToLabel.setText(snapStr);
 	}
 
 	@Override
@@ -316,14 +407,15 @@ public class SongEditScreen extends AbstractGameScreen {
 		for (int i = 0; i < (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
 			mShapeRenderer.line(
 				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
-				mRightCamera.position.y + mRightCamera.viewportHeight / 2.f,
+				mRightCamera.position.y + mTrackHeight / 2.f,
 				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
-				mRightCamera.position.y - mRightCamera.viewportHeight / 2.f);
+				mRightCamera.position.y - mTrackHeight / 2.f);
 		}
 		
 		mShapeRenderer.end();
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mStage.draw();	
+		Table.drawDebug(mStage);
 		renderTrack();
 	}
 	
@@ -339,6 +431,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBatch.begin();
 		renderOutlines();
 		renderNotes();
+		renderMeasures();
 		mBatch.end();
 	}
 	
@@ -353,6 +446,20 @@ public class SongEditScreen extends AbstractGameScreen {
 		Gdx.gl20.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
 		for(Note note : mRightNotes){
 			note.render(mBatch);
+		}
+	}
+	
+	private void renderMeasures(){
+		int numMeasures = (int)Math.ceil(mData.getBpm() * mData.getLength() / 60.f / 4.f);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
+		float renderY = mRightCamera.position.y + mTrackHeight / 2.f + Assets.instance.fonts.defaultFont.getLineHeight() + Constants.CELL_PADDING;
+		float renderX = mTrackWidth / 2.f - mUpButton.getWidth();
+		for(int i = 1; i < numMeasures; ++i){			
+			Assets.instance.fonts.defaultFont.drawMultiLine(
+					mBatch, Integer.toString(i),
+					renderX, renderY,
+					0, BitmapFont.HAlignment.CENTER);
+			renderX -= 4 * measureWidthPixels;
 		}
 	}
 
@@ -399,20 +506,48 @@ public class SongEditScreen extends AbstractGameScreen {
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
 		mRightCamera.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 		mRightCamera.update();
+		mCurrentBeatFraction = mCurrentBeatFraction.plus(1, mNoteQuantizations[mColorIndex]);
+		mCurrentBeat = mCurrentBeatFraction.toFloat();
+		if (mCurrentBeat == 0.f)
+			mCurrentSecond = 0.f;
+		else
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 		for(OutlineNote note : mRightOutlines){
 			note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 		}
 	}
 	
 	private void onRightPress(){
+			
+		mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
+		if (mCurrentBeatFraction.toFloat() < 0.f)
+			mCurrentBeatFraction = new Fraction();
+		mCurrentBeat = mCurrentBeatFraction.toFloat();
+		if (mCurrentBeat == 0.f)
+			mCurrentSecond = 0.f;
+		else
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 		
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		mRightCamera.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		if (mCurrentBeat == 0.f)
+			mRightCamera.position.x = 0.f;
+		else
+			mRightCamera.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 		mRightCamera.update();
-		for(OutlineNote note : mRightOutlines){
-			note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
-		}
 		
+		
+		
+		float beatZeroX = mRightCamera.viewportWidth / 2.f - mUpButton.getWidth() - mRightOutlines[0].getBounds().width / 2.f;
+		if (mCurrentBeat == 0.f){
+			for(OutlineNote note : mRightOutlines){
+				note.setPosition(beatZeroX, note.position.y);
+			}
+		}
+		else{			
+			for(OutlineNote note : mRightOutlines){
+				note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			}
+		}
 	}
 	
 	private void onUpPress(){
