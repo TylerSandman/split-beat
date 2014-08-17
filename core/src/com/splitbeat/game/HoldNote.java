@@ -144,9 +144,7 @@ public class HoldNote extends Note {
 	
 	@Override
 	public void render(SpriteBatch batch){
-		
-		
-		
+
 		//Set blending to addition for laser-like effect
 		batch.end();
 		batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -219,6 +217,19 @@ public class HoldNote extends Note {
 	@Override
 	public int getMaxScore(){
 		return (Constants.FLAWLESS_POINTS + Constants.HOLD_POINTS);
+	}
+	
+	@Override
+	public void moveBy(float x, float y){
+		super.moveBy(x, y);
+		mDrawPosition.x += x;
+		mDrawPosition.y += y;
+	}
+	
+	@Override
+	public void setPosition(float x, float y){
+		super.setPosition(x, y);
+		
 	}
 	
 	public void setHoldDuration(float beats){

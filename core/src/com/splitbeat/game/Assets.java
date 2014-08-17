@@ -11,6 +11,7 @@ import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -201,6 +202,10 @@ public class Assets implements Disposable, AssetErrorListener{
 			holdBackground = atlas.findRegion("hold_background");
 			hitOverlay = atlas.findRegion("hit_overlay");
 			hitBackground = atlas.findRegion("hit_background");
+			hitOverlay.getTexture().setFilter(
+					TextureFilter.Linear, TextureFilter.Linear);
+			hitBackground.getTexture().setFilter(
+					TextureFilter.Linear, TextureFilter.Linear);
 		}
 	}
 	

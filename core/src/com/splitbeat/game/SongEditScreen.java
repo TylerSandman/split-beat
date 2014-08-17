@@ -524,14 +524,18 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private boolean removeNote(NoteSlot slot, float beat){
 		
+		//Don't use equality due to floating point error
 		for(Note note : mRightRegularNotes){
-			if (note.beat == beat && note.slot == slot){
+			if (Math.abs(note.beat - beat) < 1.f/64 && note.slot == slot){
 				note.flagForRemoval();
 				return true;
 			}
 		}
+		
 		for(HoldNote note : mRightHoldNotes){
-			if (beat <= note.beat + note.getHoldDuration() && beat >= note.beat && note.slot == slot){
+			if (beat <= note.beat + note.getHoldDuration() && 
+				(beat > note.beat || Math.abs(beat - note.beat) < 1.f/64) && 
+				note.slot == slot){
 				note.flagForRemoval();
 				return true;
 			}
@@ -633,12 +637,16 @@ public class SongEditScreen extends AbstractGameScreen {
 			
 			//Remove regular and hold notes along the way
 			for(Note regNote : mRightRegularNotes){
-				if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && regNote.beat >= activeNote.beat && activeNote.slot == regNote.slot){
+				if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+					(regNote.beat > activeNote.beat || Math.abs(regNote.beat - activeNote.beat) < 1.f / 64) && 
+					activeNote.slot == regNote.slot){
 					regNote.flagForRemoval();
 				}
 			}
 			for(HoldNote holdNote : mRightHoldNotes){
-				if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && holdNote.beat >= activeNote.beat && activeNote.slot == holdNote.slot){
+				if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+					(holdNote.beat > activeNote.beat || Math.abs(holdNote.beat - activeNote.beat) < 1.f / 64) && 
+					activeNote.slot == holdNote.slot){
 					holdNote.flagForRemoval();
 				}
 			}
@@ -647,6 +655,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void onRightPress(){
 			
+		if (mCurrentBeat == 0.f) return;
 		mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
 		if (mCurrentBeatFraction.toFloat() < 0.f)
 			mCurrentBeatFraction = new Fraction();
@@ -674,6 +683,19 @@ public class SongEditScreen extends AbstractGameScreen {
 				note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 			}
 		}
+		
+		ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
+		//Decrease active hold notes length accordingly
+		for(HoldNote activeNote : mActiveHoldNotes){
+			
+			//Remove active hold notes where we've scrolled past their starting point
+			if (mCurrentBeat < activeNote.beat){
+				toRemove.add(activeNote);		
+				continue;
+			}
+			activeNote.addHoldDuration(-1.f / mNoteQuantizations[mColorIndex]);
+		}
+		mActiveHoldNotes.removeAll(toRemove);
 	}
 	
 	private void onUpPress(){
@@ -750,7 +772,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		//Replace hold notes which have duration 0 with regular notes
 		ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
 		for(HoldNote note : mActiveHoldNotes){
-			if (note.getHoldDuration() == 0.f && note.slot == slot){
+			if (note.getHoldDuration() < 1.f / 64 && note.slot == slot){
 				toRemove.add(note);
 				placeNote(slot, note.type);
 			}
@@ -761,7 +783,6 @@ public class SongEditScreen extends AbstractGameScreen {
 		for(HoldNote note : mActiveHoldNotes){
 			mRightHoldNotes.add(note);
 		}
-		mActiveHoldNotes.removeAll(mRightHoldNotes);
-		
+		mActiveHoldNotes.removeAll(mRightHoldNotes);		
 	}
 }
