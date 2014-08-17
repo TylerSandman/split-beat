@@ -34,8 +34,11 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private ArrayList<BPMMarker> mLeftMarkers;
 	private ArrayList<BPMMarker> mRightMarkers;
-	private ArrayList<Note> mLeftNotes;
-	private ArrayList<Note> mRightNotes;
+	private ArrayList<Note> mLeftRegularNotes;
+	private ArrayList<Note> mRightRegularNotes;
+	private ArrayList<HoldNote> mLeftHoldNotes;
+	private ArrayList<HoldNote> mRightHoldNotes;
+	private ArrayList<HoldNote> mActiveHoldNotes;
 	private OutlineNote[] mLeftOutlines;
 	private OutlineNote[] mRightOutlines;
 	private Color[] mNoteColors;
@@ -63,6 +66,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private int mColorIndex;
 	private float mTrackWidth;
 	private float mTrackHeight;
+	private boolean mPlacingHold;
 	
 	private ScoreManager mScoreManager;
 	
@@ -75,15 +79,18 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBuilder = new TmxMapBuilder();
 		mShapeRenderer = new ShapeRenderer();
 		mBatch = new SpriteBatch();
+		mLeftMarkers = new ArrayList<BPMMarker>();
 		mRightMarkers = new ArrayList<BPMMarker>();
-		mRightMarkers = new ArrayList<BPMMarker>();
-		mRightNotes = new ArrayList<Note>();
-		mRightNotes = new ArrayList<Note>();
+		mLeftRegularNotes = new ArrayList<Note>();
+		mRightRegularNotes = new ArrayList<Note>();
+		mLeftHoldNotes = new ArrayList<HoldNote>();
+		mRightHoldNotes = new ArrayList<HoldNote>();
+		mActiveHoldNotes = new ArrayList<HoldNote>();
 		mScoreManager = new ScoreManager();
 		mNoteColors = new Color[]{
 				Color.RED,
 				Color.BLUE,
-				Color.PURPLE,
+				Color.YELLOW,
 				Color.GREEN,
 				Color.YELLOW,
 				//Darker orange
@@ -100,6 +107,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mCurrentBeat = 0.f;
 		mColorIndex = 0;
 		mCurrentBeatFraction = new Fraction();
+		mPlacingHold = false;
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -150,9 +158,6 @@ public class SongEditScreen extends AbstractGameScreen {
 		buildInformation();
 		buildStage();
 		
-		placeNote(1, NoteSlot.MIDDLE_RIGHT, NoteType.QUARTER);
-		placeNote(2, NoteSlot.MIDDLE_RIGHT, NoteType.EIGHTH);
-		
 		mStage.addListener(new InputListener(){
 			
 			@Override
@@ -170,11 +175,36 @@ public class SongEditScreen extends AbstractGameScreen {
 				case(Keys.RIGHT):
 					onRightPress();
 					break;
+				case(Keys.O):
+					onSlotPress(NoteSlot.TOP_RIGHT);
+					break;
+				case(Keys.K):
+					onSlotPress(NoteSlot.MIDDLE_RIGHT);
+					break;
+				case(Keys.M):
+					onSlotPress(NoteSlot.BOTTOM_RIGHT);
+					break;
 				case(Keys.ENTER):
 					 //TODO SOMETHING
 					break;
 				case(Keys.ESCAPE):
 					//TODO SOMETHING
+					break;
+				}
+				return true;
+			}
+			
+			@Override
+			public boolean keyUp(InputEvent event, int keycode){
+				switch(keycode){
+				case(Keys.O):
+					onSlotRelease(NoteSlot.TOP_RIGHT);
+					break;
+				case(Keys.K):
+					onSlotRelease(NoteSlot.MIDDLE_RIGHT);
+					break;
+				case(Keys.M):
+					onSlotRelease(NoteSlot.BOTTOM_RIGHT);
 					break;
 				}
 				return true;
@@ -380,6 +410,23 @@ public class SongEditScreen extends AbstractGameScreen {
 		snapStr += (quantization == 8) ? "nd" : "th";
 		snapStr += " notes";
 		mSnapToLabel.setText(snapStr);
+		
+		cleanupNotes();
+	}
+	
+	public void cleanupNotes(){
+		
+		ArrayList<Note> toRemove = new ArrayList<Note>();
+		for(Note note : mRightRegularNotes){
+			if (note.isFlaggedForRemoval())
+				toRemove.add(note);
+		}
+		for(Note note : mRightHoldNotes){
+			if (note.isFlaggedForRemoval())
+				toRemove.add(note);
+		}
+		mRightRegularNotes.removeAll(toRemove);
+		mRightHoldNotes.removeAll(toRemove);
 	}
 
 	@Override
@@ -444,7 +491,13 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void renderNotes(){
 		Gdx.gl20.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
-		for(Note note : mRightNotes){
+		for(Note note : mRightRegularNotes){
+			note.render(mBatch);
+		}
+		for(HoldNote note : mRightHoldNotes){
+			note.render(mBatch);
+		}
+		for(HoldNote note : mActiveHoldNotes){
 			note.render(mBatch);
 		}
 	}
@@ -469,9 +522,26 @@ public class SongEditScreen extends AbstractGameScreen {
 	@Override
 	public void pause() {}
 	
-	private void placeNote(float beat, NoteSlot slot, NoteType type){
+	private boolean removeNote(NoteSlot slot, float beat){
 		
-		Note note = new Note(beat, slot, type, mScoreManager);
+		for(Note note : mRightRegularNotes){
+			if (note.beat == beat && note.slot == slot){
+				note.flagForRemoval();
+				return true;
+			}
+		}
+		for(HoldNote note : mRightHoldNotes){
+			if (beat <= note.beat + note.getHoldDuration() && beat >= note.beat && note.slot == slot){
+				note.flagForRemoval();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private void placeNote(NoteSlot slot, NoteType type){
+		
+		Note note = new Note(mCurrentBeat, slot, type, mScoreManager);
 		
 		//Center note relative to track and up/down buttons
 		note.setPosition(
@@ -489,16 +559,57 @@ public class SongEditScreen extends AbstractGameScreen {
 		case BOTTOM_LEFT:
 			note.moveBy(0, -moveIncrement);
 			break;
+		case MIDDLE_RIGHT:
+			break;
+		case TOP_RIGHT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_RIGHT:
+			note.moveBy(0, -moveIncrement);
+			break;
 		}
 		
 		//Move to starting position (beat 0)
 		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
-		//Move to appropriate beat
-		float measureWidthPixels = note.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		note.moveBy(beat * -measureWidthPixels, 0);
+		mRightRegularNotes.add(note);
+	}
+	
+	private void placeHoldNote(NoteSlot slot, NoteType type){
 		
-		mRightNotes.add(note);
+		removeNote(slot, mCurrentBeat);
+		HoldNote note = new HoldNote(mCurrentBeat, slot, type, 0.f, mData.getBpm(), mScoreManager);
+		
+		//Center note relative to track and up/down buttons
+		note.setPosition(
+				mRightCamera.position.x - note.getHitBounds().width / 2.f,
+				mRightCamera.position.y - note.getHitBounds().height / 2.f);
+		
+		//Move to appropriate slot
+		float moveIncrement = 2 * note.getHitBounds().height - note.getHitBounds().height / 2;
+		switch(slot){
+		case MIDDLE_LEFT:
+			break;
+		case TOP_LEFT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_LEFT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		case MIDDLE_RIGHT:
+			break;
+		case TOP_RIGHT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_RIGHT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		}
+		
+		//Move to starting position (beat 0)
+		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		mActiveHoldNotes.add(note);
 	}
 	
 	private void onLeftPress(){
@@ -514,6 +625,11 @@ public class SongEditScreen extends AbstractGameScreen {
 			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 		for(OutlineNote note : mRightOutlines){
 			note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		}
+		
+		//Extend active hold notes accordingly
+		for(HoldNote note : mActiveHoldNotes){
+			note.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
 		}
 	}
 	
@@ -534,9 +650,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		else
 			mRightCamera.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 		mRightCamera.update();
-		
-		
-		
+			
 		float beatZeroX = mRightCamera.viewportWidth / 2.f - mUpButton.getWidth() - mRightOutlines[0].getBounds().width / 2.f;
 		if (mCurrentBeat == 0.f){
 			for(OutlineNote note : mRightOutlines){
@@ -552,15 +666,90 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void onUpPress(){
 		
-		mColorIndex = (mColorIndex + mNoteColors.length - 1) % mNoteColors.length;
-		mUpButton.setColor(mNoteColors[mColorIndex]);
-		mDownButton.setColor(mNoteColors[mColorIndex]);
+		if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) ||
+			Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
+			float newZoom = mRightCamera.zoom - Constants.ZOOM_INCREMENT;
+			if (newZoom < Constants.MIN_ZOOM)
+				return;
+			else
+				mRightCamera.zoom = newZoom;
+			mRightCamera.update();
+		}
+		
+		else{
+			mColorIndex = (mColorIndex + mNoteColors.length - 1) % mNoteColors.length;
+			mUpButton.setColor(mNoteColors[mColorIndex]);
+			mDownButton.setColor(mNoteColors[mColorIndex]);
+		}
 	}
 	
 	private void onDownPress(){
 		
-		mColorIndex = (mColorIndex + 1) % mNoteColors.length;
-		mUpButton.setColor(mNoteColors[mColorIndex]);
-		mDownButton.setColor(mNoteColors[mColorIndex]);		
+		if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) ||
+			Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
+			float newZoom = mRightCamera.zoom + Constants.ZOOM_INCREMENT;
+			if (newZoom > Constants.MAX_ZOOM)
+				return;
+			else
+				mRightCamera.zoom = newZoom;
+			mRightCamera.update();
+		}
+		
+		else{
+			mColorIndex = (mColorIndex + 1) % mNoteColors.length;
+			mUpButton.setColor(mNoteColors[mColorIndex]);
+			mDownButton.setColor(mNoteColors[mColorIndex]);		
+		}
+	}
+	
+	private void onSlotPress(NoteSlot slot){
+
+		if (removeNote(slot, mCurrentBeat))
+			return;
+		NoteType type = NoteType.THIRTY_SECOND;
+		switch(mCurrentBeatFraction.getDenominator()){
+		case 1:
+			type = NoteType.QUARTER;
+			break;
+		case 2:
+			type = NoteType.EIGHTH;
+			break;
+		case 3:
+			type = NoteType.TWELVTH;
+			break;
+		case 4:
+			type = NoteType.SIXTEENTH;
+			break;
+		case 6:
+			type = NoteType.TWENTY_FOURTH;
+			break;
+		case 8:
+			type = NoteType.THIRTY_SECOND;
+			break;
+		}
+		
+		//Initially place a hold note, if the hold duration is 0
+		//it will be changed to a normal note
+		placeHoldNote(slot, type);
+	}
+	
+	private void onSlotRelease(NoteSlot slot){
+		
+		//Replace hold notes which have duration 0 with regular notes
+		ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
+		for(HoldNote note : mActiveHoldNotes){
+			if (note.getHoldDuration() == 0.f && note.slot == slot){
+				toRemove.add(note);
+				placeNote(slot, note.type);
+			}
+		}
+		mActiveHoldNotes.removeAll(toRemove);
+		
+		//Place rest of hold notes
+		for(HoldNote note : mActiveHoldNotes){
+			mRightHoldNotes.add(note);
+		}
+		mActiveHoldNotes.removeAll(mRightHoldNotes);
+		
 	}
 }

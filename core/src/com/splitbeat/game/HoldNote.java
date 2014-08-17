@@ -31,6 +31,7 @@ public class HoldNote extends Note {
 	private boolean mSuccessfulRelease;
 	
 	HoldNote(float beat, NoteSlot slot, NoteType type, float holdDurationBeats, float bpm, ScoreManager scoreManager) {
+		
 		super(beat, slot, type, scoreManager);
 		mHoldDurationBeats = holdDurationBeats;
 		mBPM = bpm;
@@ -74,18 +75,25 @@ public class HoldNote extends Note {
 		
 		if (mLeftTrack){
 			mDrawPosition = new Vector2(
-					mSprite.getX() + mSprite.getWidth() / 2, mSprite.getY());	
+					mSprite.getX(), mSprite.getY());	
 			mHoldBackground.flip(true, false);
 			mHoldOverlay.flip(true, false);
 		}
 		else{
 			mDrawPosition = new Vector2(
-					mSprite.getX() - mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES * mHoldDurationBeats,
+					mSprite.getX() + mSprite.getWidth() / 2.f - mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES * mHoldDurationBeats,
 					mSprite.getY());			
 		}
+		
 		mDrawSize = new Vector2(
-				mHoldDurationBeats * mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES + mSprite.getWidth() / 2.f,
+				mHoldDurationBeats * mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES,
 				mHoldBackground.getRegionHeight());
+		
+		//Hold duration of 0 to be used in edit mode
+		if (mHoldDurationBeats == 0.f){
+			mDrawSize.x = 0.f;
+			mDrawSize.y = 0.f;
+		}
 		
 		switch(type){
 		case QUARTER:
@@ -131,6 +139,8 @@ public class HoldNote extends Note {
 	@Override
 	public void render(SpriteBatch batch){
 		
+		
+		
 		//Set blending to addition for laser-like effect
 		batch.end();
 		batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
@@ -147,8 +157,10 @@ public class HoldNote extends Note {
 				mDrawPosition.x, mDrawPosition.y,
 				mDrawSize.x, mHoldOverlay.getRegionHeight());
 		
-		//Clear tint on SpriteBatch and draw the actual note
-		batch.setColor(Color.CLEAR);
+		//Set blending back to default
+		batch.setBlendFunction(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
+		
+		//Draw actual note
 		if (!mHolding)
 			mSprite.setAlpha(1);		
 		else
@@ -201,5 +213,34 @@ public class HoldNote extends Note {
 	@Override
 	public int getMaxScore(){
 		return (Constants.FLAWLESS_POINTS + Constants.HOLD_POINTS);
+	}
+	
+	public void setHoldDuration(float beats){
+		
+		mHoldDurationBeats = beats;
+		float secondsPerBeat = 1.f / (mBPM / 60.f);
+		mHoldDurationSeconds = mHoldDurationBeats * secondsPerBeat;
+		mHoldDurationSeconds += mSprite.getWidth() / 2.f / mNoteSpeed;
+
+		if (mLeftTrack){
+			mDrawPosition = new Vector2(
+					mSprite.getX(), mSprite.getY());	
+		}
+		else{
+			mDrawPosition = new Vector2(
+					mSprite.getX() + mSprite.getWidth() / 2.f - mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES * mHoldDurationBeats,
+					mSprite.getY());			
+		}
+		mDrawSize = new Vector2(
+				mHoldDurationBeats * mSprite.getWidth() * Constants.MEASURE_WIDTH_NOTES,
+				mHoldBackground.getRegionHeight());
+	}
+	
+	public void addHoldDuration(float beats){
+		setHoldDuration(mHoldDurationBeats + beats);
+	}
+	
+	public float getHoldDuration(){
+		return mHoldDurationBeats;
 	}
 }
