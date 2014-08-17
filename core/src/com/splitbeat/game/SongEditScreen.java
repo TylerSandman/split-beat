@@ -781,7 +781,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Place rest of hold notes
 		for(HoldNote note : mActiveHoldNotes){
-			mRightHoldNotes.add(note);
+			if (note.slot == slot)
+				mRightHoldNotes.add(note);
 		}
 		mActiveHoldNotes.removeAll(mRightHoldNotes);		
 	}
