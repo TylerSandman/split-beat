@@ -628,8 +628,20 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Extend active hold notes accordingly
-		for(HoldNote note : mActiveHoldNotes){
-			note.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
+		for(HoldNote activeNote : mActiveHoldNotes){
+			activeNote.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
+			
+			//Remove regular and hold notes along the way
+			for(Note regNote : mRightRegularNotes){
+				if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && regNote.beat >= activeNote.beat && activeNote.slot == regNote.slot){
+					regNote.flagForRemoval();
+				}
+			}
+			for(HoldNote holdNote : mRightHoldNotes){
+				if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && holdNote.beat >= activeNote.beat && activeNote.slot == holdNote.slot){
+					holdNote.flagForRemoval();
+				}
+			}
 		}
 	}
 	

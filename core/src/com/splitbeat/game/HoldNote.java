@@ -103,10 +103,16 @@ public class HoldNote extends Note {
 			mHoldTintColor = Color.BLUE;
 			break;
 		case TWELVTH:
-			mHoldTintColor = Color.PURPLE;
+			mHoldTintColor = Color.YELLOW;
 			break;
 		case SIXTEENTH:
 			mHoldTintColor = Color.GREEN;
+			break;
+		case TWENTY_FOURTH:
+			mHoldTintColor = Color.YELLOW;
+			break;
+		case THIRTY_SECOND:
+			mHoldTintColor = Color.ORANGE;
 			break;
 		default:
 			mHoldTintColor = Color.RED;
