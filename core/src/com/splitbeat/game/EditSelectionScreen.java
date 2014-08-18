@@ -147,7 +147,7 @@ public class EditSelectionScreen extends AbstractGameScreen {
 		layer.add(mImportButton).padBottom(Constants.CELL_PADDING);
 		layer.row();
 		
-		mEditButton = new TextButton("Edit", mSkin, "default");
+		mEditButton = new TextButton("Edit Existing", mSkin, "default");
 		mEditButton.addListener(new ClickListener() {
 			
 			@Override

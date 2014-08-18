@@ -129,6 +129,27 @@ red_circle
   orig: 36, 36
   offset: 0, 0
   index: -1
+highlighted_panel_left
+  rotate: false
+  xy: 377, 57
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+highlighted_panel_repeat
+  rotate: false
+  xy: 443, 57
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+highlighted_panel_right
+  rotate: false
+  xy: 509, 57
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
 red_button03
   rotate: false
   xy: 1, 1
@@ -166,70 +187,91 @@ red_button05
   index: -1
 red_button07
   rotate: false
-  xy: 377, 76
+  xy: 549, 123
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
+red_panel_left
+  rotate: false
+  xy: 600, 104
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+red_panel_repeat
+  rotate: false
+  xy: 666, 104
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
+red_panel_right
+  rotate: false
+  xy: 732, 104
+  size: 64, 64
+  orig: 64, 64
+  offset: 0, 0
+  index: -1
 red_button09
   rotate: false
-  xy: 428, 76
+  xy: 798, 123
   size: 49, 45
   orig: 49, 45
   offset: 0, 0
   index: -1
 red_boxCheckmark
   rotate: false
-  xy: 479, 85
+  xy: 849, 132
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
 red_boxCross
   rotate: false
-  xy: 256, 14
+  xy: 889, 132
   size: 38, 36
   orig: 38, 36
   offset: 0, 0
   index: -1
-red_sliderDown
-  rotate: false
-  xy: 519, 79
-  size: 28, 42
-  orig: 28, 42
-  offset: 0, 0
-  index: -1
 green_sliderRight
   rotate: false
-  xy: 296, 39
+  xy: 929, 137
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
+red_sliderDown
+  rotate: false
+  xy: 256, 8
+  size: 28, 42
+  orig: 28, 42
+  offset: 0, 0
+  index: -1
 red_sliderLeft
   rotate: false
-  xy: 337, 39
+  xy: 295, 39
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 red_sliderRight
   rotate: false
-  xy: 378, 43
+  xy: 336, 39
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 yellow_sliderRight
   rotate: false
-  xy: 419, 43
+  xy: 286, 6
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
 red_sliderUp
   rotate: false
-  xy: 460, 32
+  xy: 970, 126
   size: 28, 42
   orig: 28, 42
   offset: 0, 0
@@ -243,29 +285,15 @@ red_checkmark
   index: -1
 red_cross
   rotate: false
-  xy: 296, 19
+  xy: 575, 103
   size: 18, 18
   orig: 18, 18
   offset: 0, 0
   index: -1
 red_tick
   rotate: false
-  xy: 549, 164
+  xy: 798, 104
   size: 17, 17
   orig: 17, 17
-  offset: 0, 0
-  index: -1
-gradient_repeat
-  rotate: false
-  xy: 316, 27
-  size: 10, 10
-  orig: 10, 10
-  offset: 0, 0
-  index: -1
-gradient_repeat_highlight
-  rotate: false
-  xy: 549, 152
-  size: 10, 10
-  orig: 10, 10
   offset: 0, 0
   index: -1

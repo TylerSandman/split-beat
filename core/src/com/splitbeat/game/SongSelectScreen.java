@@ -8,10 +8,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -20,11 +17,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
 public class SongSelectScreen extends AbstractGameScreen {
 	
@@ -51,11 +49,6 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private Difficulty mSelectedDifficulty;
 	private ArrayList<SongData> mSongDataArr;
 	
-	private Sprite mGradientSprite;
-	private Sprite mGradientHighlightSprite;
-	private SpriteDrawable mGradientDrawable;
-	private SpriteDrawable mGradientHighlightDrawable;
-
 	SongSelectScreen(Game game) {
 		super(game);
 		mSelectedIndex = -1;
@@ -67,22 +60,6 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
 				new TextureAtlas(Constants.TEXTURE_ATLAS_GUI));
-		
-		//Set up our song table textures
-		Assets.instance.gui.repeatGradient.getTexture().setFilter(
-				TextureFilter.Linear, TextureFilter.Linear);
-		Assets.instance.gui.repeatGradientHighlight.getTexture().setFilter(
-				TextureFilter.Linear, TextureFilter.Linear);
-		
-		TextureRegion gradientRegion = new TextureRegion(Assets.instance.gui.repeatGradient);
-		mGradientSprite = new Sprite(gradientRegion);
-		mGradientSprite.setSize(mGradientSprite.getWidth(), Gdx.graphics.getHeight() / Constants.CELL_PADDING);
-		mGradientDrawable = new SpriteDrawable(mGradientSprite);
-		
-		TextureRegion gradientRegionHighlight = new TextureRegion(Assets.instance.gui.repeatGradientHighlight);
-		mGradientHighlightSprite = new Sprite(gradientRegionHighlight);
-		mGradientHighlightSprite.setSize(mGradientHighlightSprite.getWidth(), Gdx.graphics.getHeight() / Constants.CELL_PADDING);
-		mGradientHighlightDrawable = new SpriteDrawable(mGradientHighlightSprite);
 		
 		//Build our GUI
 		buildLabels();
@@ -153,8 +130,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 	
 	private void dehighlightSong(int index){
 		if (mSelectedIndex < 0) return;
-		Table songTable = (Table) mSongsTable.getCells().get(mSelectedIndex).getActor();
-		songTable.setBackground(mGradientDrawable);
+		Stack songStack = (Stack) mSongsTable.getCells().get(mSelectedIndex).getActor();
+		Table bgTable = (Table) songStack.getChildren().get(0);
+		((Image) bgTable.getChildren().get(0)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.redPanelLeft));;
+		((Image) bgTable.getChildren().get(1)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.redPanelRepeat));;			
+		((Image) bgTable.getChildren().get(2)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.redPanelRight));;
 	}
 	
 	private void highlightSong(int index){
@@ -162,8 +145,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mSelectedIndex = index;
 		
 		//Change background
-		Table songTable = (Table) mSongsTable.getCells().get(mSelectedIndex).getActor();
-		songTable.setBackground(mGradientHighlightDrawable);	
+		Stack songStack = (Stack) mSongsTable.getCells().get(mSelectedIndex).getActor();
+		Table bgTable = (Table) songStack.getChildren().get(0);
+		((Image) bgTable.getChildren().get(0)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.highlightedPanelLeft));;
+		((Image) bgTable.getChildren().get(1)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.highlightedPanelRepeat));;			
+		((Image) bgTable.getChildren().get(2)).setDrawable(
+				new TextureRegionDrawable(Assets.instance.gui.highlightedPanelRight));;
 		
 		//Update scores
 		SongScore scores = Options.instance.getScores(mSongDataArr.get(mSelectedIndex).getName());
@@ -188,7 +177,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mHardScoreLabel.setText(hardScore);
 		
 		//Move scroll pane accordingly
-		mSongsPane.scrollTo(songTable.getX(), songTable.getY(), songTable.getWidth(), songTable.getHeight());
+		mSongsPane.scrollTo(songStack.getX(), songStack.getY(), songStack.getWidth(), songStack.getHeight());
 	}
 	
 	private void selectDifficulty(Difficulty difficulty){
@@ -243,12 +232,15 @@ public class SongSelectScreen extends AbstractGameScreen {
 	private void buildSongPane(){
 		
 		mSongsTable = new Table();
+		
 		for (Map.Entry<String, SongData> entry : Assets.instance.maps.dataMap.entrySet()){
 			
 			SongData data = entry.getValue();
 			mSongDataArr.add(data);
 			//Make labels based on song data
 			Table scrollTable = new Table();
+			Stack stack = new Stack();
+			
 			Label nameLabel = new Label(data.getTitle(), mSkin, "black");
 			nameLabel.setAlignment(Align.center);
 			Label artistLabel = new Label(data.getArtist(), mSkin, "black");
@@ -268,10 +260,16 @@ public class SongSelectScreen extends AbstractGameScreen {
 			scrollTable.add(artistLabel).width(colWidth);
 			scrollTable.add(timeLabel).width(colWidth);
 			scrollTable.add(bpmLabel).width(colWidth);
-			scrollTable.setBackground(mGradientDrawable);
 			scrollTable.setTouchable(Touchable.enabled);
 			//scrollTable.debug();
-			mSongsTable.add(scrollTable).fillX().expandX();
+			
+			Table bgTable = new Table();
+			bgTable.add(new Image(Assets.instance.gui.redPanelLeft));
+			bgTable.add(new Image(Assets.instance.gui.redPanelRepeat)).fillX().expandX();
+			bgTable.add(new Image(Assets.instance.gui.redPanelRight));
+			stack.add(bgTable);
+			stack.add(scrollTable);	
+			mSongsTable.add(stack);
 			mSongsTable.row();
 		}
 		mSongsPane = new ScrollPane(mSongsTable);
