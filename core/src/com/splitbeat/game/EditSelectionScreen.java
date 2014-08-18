@@ -7,20 +7,16 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.SnapshotArray;
 
-public class MenuScreen extends AbstractGameScreen {
+public class EditSelectionScreen extends AbstractGameScreen {
 	
 	private Stage mStage;
 	private Stack mStack;
@@ -29,24 +25,24 @@ public class MenuScreen extends AbstractGameScreen {
 	private Table mBackgroundLayer;
 	private Table mButtonLayer;
 	
-	private TextButton mPlayButton;
+	private TextButton mNewButton;
+	private TextButton mImportButton;
 	private TextButton mEditButton;
-	private TextButton mSyncButton;
-	private TextButton mOptionsButton;
 	private TextButton.TextButtonStyle mHoverButtonStyle;
 	private TextButton.TextButtonStyle mNormalButtonStyle;
 	
 	private int mButtonIndex;
-	
-	MenuScreen(Game game){
+
+	EditSelectionScreen(Game game) {
 		super(game);
 	}
+	
 	
 	private void init(){
 		
 		mSkin = new Skin(
-		Gdx.files.internal(Constants.GUI_SKIN),
-		new TextureAtlas(Constants.TEXTURE_ATLAS_GUI));
+				Gdx.files.internal(Constants.GUI_SKIN),
+				new TextureAtlas(Constants.TEXTURE_ATLAS_GUI));
 		mHoverButtonStyle = new TextButton("", mSkin, "hover").getStyle();
 		mNormalButtonStyle = new TextButton("", mSkin, "default").getStyle();
 		mButtonIndex = -1;
@@ -62,7 +58,7 @@ public class MenuScreen extends AbstractGameScreen {
 		mStack.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mStack.add(mBackgroundLayer);
 		mStack.add(mButtonLayer);
-		mStage.setKeyboardFocus(mPlayButton);
+		mStage.setKeyboardFocus(mNewButton);
 		
 		mButtonLayer.addListener(new InputListener(){
 			
@@ -85,7 +81,7 @@ public class MenuScreen extends AbstractGameScreen {
 				}
 				return true;
 			}
-		});
+		});	
 	}
 	
 	private Table buildButtonLayer(){
@@ -93,90 +89,63 @@ public class MenuScreen extends AbstractGameScreen {
 		Table layer = new Table();
 		layer.center();
 		
-		mPlayButton = new TextButton("Songs", mSkin, "default");		
-		mPlayButton.addListener(new ClickListener() {
+		mNewButton = new TextButton("New", mSkin, "default");		
+		mNewButton.addListener(new ClickListener() {
 			
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				onPlayClicked();
+				onNewClicked();
 				return true;
 			}
 			
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button){
-				mPlayButton.setStyle(mNormalButtonStyle);
+				mNewButton.setStyle(mNormalButtonStyle);
 			}
 			
 			@Override
 			public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor){
 				deselectAllButtons();
-				mPlayButton.setStyle(mHoverButtonStyle);
+				mNewButton.setStyle(mHoverButtonStyle);
 			}
 			
 			@Override
 			public void exit(InputEvent event, float x, float y, int pointer, Actor toActor){
-				mPlayButton.setStyle(mNormalButtonStyle);
+				mNewButton.setStyle(mNormalButtonStyle);
 			}
 			
 		});	
 		
-		layer.add(mPlayButton).padBottom(Constants.CELL_PADDING);
+		layer.add(mNewButton).padBottom(Constants.CELL_PADDING);
 		layer.row();
 		
-		mSyncButton = new TextButton("Sync", mSkin, "default");
-		mSyncButton.addListener(new ClickListener() {
+		mImportButton = new TextButton("Import", mSkin, "default");
+		mImportButton.addListener(new ClickListener() {
 			
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				onSyncClicked();
+				onImportClicked();
 				return true;
 			}
 			
 			@Override
 			public void touchUp(InputEvent event, float x, float y, int pointer, int button){
-				mSyncButton.setStyle(mNormalButtonStyle);
+				mImportButton.setStyle(mNormalButtonStyle);
 			}
 			
 			@Override
 			public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor){
 				deselectAllButtons();
-				mSyncButton.setStyle(mHoverButtonStyle);
+				mImportButton.setStyle(mHoverButtonStyle);
 			}
 			
 			@Override
 			public void exit(InputEvent event, float x, float y, int pointer, Actor toActor){
-				mSyncButton.setStyle(mNormalButtonStyle);
+				mImportButton.setStyle(mNormalButtonStyle);
 			}
 		});
-		layer.add(mSyncButton).padBottom(Constants.CELL_PADDING);
+		layer.add(mImportButton).padBottom(Constants.CELL_PADDING);
 		layer.row();
-		
-		mOptionsButton = new TextButton("Options", mSkin, "default");
-		mOptionsButton.addListener(new ClickListener() {
-			
-			@Override
-			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
-				onOptionsClicked();
-				return true;
-			}
-			
-			@Override
-			public void touchUp(InputEvent event, float x, float y, int pointer, int button){
-				mOptionsButton.setStyle(mNormalButtonStyle);
-			}
-			
-			@Override
-			public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor){
-				deselectAllButtons();
-				mOptionsButton.setStyle(mHoverButtonStyle);
-			}
-			
-			@Override
-			public void exit(InputEvent event, float x, float y, int pointer, Actor toActor){
-				mOptionsButton.setStyle(mNormalButtonStyle);
-			}
-		});
-		layer.add(mOptionsButton).padBottom(Constants.CELL_PADDING).row();
 		
 		mEditButton = new TextButton("Edit", mSkin, "default");
 		mEditButton.addListener(new ClickListener() {
@@ -203,7 +172,7 @@ public class MenuScreen extends AbstractGameScreen {
 				mEditButton.setStyle(mNormalButtonStyle);
 			}
 		});
-		layer.add(mEditButton);
+		layer.add(mEditButton).padBottom(Constants.CELL_PADDING);
 		return layer;
 	}
 
@@ -254,19 +223,10 @@ public class MenuScreen extends AbstractGameScreen {
 		}
 	}
 	
-	private void onPlayClicked(){
-		game.setScreen(new SongSelectScreen(game));
-	}
+	private void onNewClicked(){}
 	
-	private void onEditClicked(){
-		game.setScreen(new EditSelectionScreen(game));
-	}
+	private void onImportClicked(){}
 	
-	private void onSyncClicked(){
-		game.setScreen(new SyncGameScreen(game));
-	}
-	
-	private void onOptionsClicked(){
-		return;
-	}
+	private void onEditClicked(){}
+
 }
