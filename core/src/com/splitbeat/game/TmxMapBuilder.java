@@ -3,35 +3,48 @@ package com.splitbeat.game;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
 import com.badlogic.gdx.utils.XmlWriter;
+import com.splitbeat.game.Constants.NoteSlot;
 
 public class TmxMapBuilder {
 	
-	private Writer mFileWriter;
-	private InputStream mIStream;
-	private XmlWriter mXmlWriter;
 	private XmlReader mXmlReader;
 	private Element mRoot;
 	private SongData mData;
+	boolean mLeft;
+	private String mSongPath;
 	
-	TmxMapBuilder(){			
+	TmxMapBuilder(boolean left){	
+		mLeft = left;
 	}
 	
-	public void create(SongData data){
+	public void create(SongData data, Difficulty difficulty){
 		
 		mData = data;
-		String songPath = 
+		String difStr = "";
+		switch (difficulty){
+		case Easy:
+			difStr = "easy";
+			break;
+		case Medium:
+			difStr = "medium";
+			break;
+		case Hard:
+			difStr = "hard";
+			break;
+		}
+		
+		mSongPath = 
 				Constants.LOCAL_MAPS_PATH + "/" + mData.getName() + "/" + 
-				mData.getName().toLowerCase().replace(" ", "_") + ".tmx";
-		mFileWriter = Gdx.files.local(songPath).writer(false);
-		mXmlWriter = new XmlWriter(mFileWriter);
+				mData.getName().toLowerCase().replace(" ", "_");
+		mSongPath += "_" + difStr + (mLeft ? "_left" : "_right") + ".tmx";
 		mXmlReader = new XmlReader();		
 		init();
-		save();
 	}
 	
 	private void init(){	
@@ -82,6 +95,13 @@ public class TmxMapBuilder {
 		notes.setAttribute("width", Integer.toString(mapWidth));
 		notes.setAttribute("height", "3");
 		
+		//Holds
+		Element holds = new Element("objectgroup", mRoot);
+		mRoot.addChild(holds);
+		holds.setAttribute("name", "Holds");
+		holds.setAttribute("width", Integer.toString(mapWidth));
+		holds.setAttribute("height", "3");
+		
 		//Markers
 		Element markers = new Element("objectgroup", mRoot);
 		mRoot.addChild(markers);
@@ -92,7 +112,10 @@ public class TmxMapBuilder {
 	
 	public void save(){
 		try {
-			mXmlWriter
+			
+			Writer writer = Gdx.files.local(mSongPath).writer(false);
+			XmlWriter xmlWriter = new XmlWriter(writer);
+			xmlWriter
 			.element("map")
 				.attribute("version", mRoot.getAttribute("version"))
 				.attribute("orientation", mRoot.getAttribute("orientation"))
@@ -119,22 +142,196 @@ public class TmxMapBuilder {
 					.pop()					
 				.pop();
 				//Notes
-				mXmlWriter
+				xmlWriter
 				.element("objectgroup")
 					.attribute("name", "Notes")
 					.attribute("width", mRoot.getAttribute("width"))
-					.attribute("height", mRoot.getAttribute("height"))
-				.pop()
+					.attribute("height", mRoot.getAttribute("height"));
+				Element noteGroup = mRoot.getChild(1);
+				for (int i = 0; i < noteGroup.getChildCount(); ++i){
+					xmlWriter
+						.element("object")
+							.element("properties")
+								.element("property")
+									.attribute("name", "type")
+									.attribute("value", noteGroup.getChild(i).getChild(0).getChild(0).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "beat")
+									.attribute("value", noteGroup.getChild(i).getChild(0).getChild(1).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "slot")
+									.attribute("value", noteGroup.getChild(i).getChild(0).getChild(2).get("value"))
+								.pop()
+							.pop()
+						.pop();
+				}
+				xmlWriter.pop()
+				//Holds
+				.element("objectgroup")
+					.attribute("name", "Holds")
+					.attribute("width", mRoot.getAttribute("width"))
+					.attribute("height", mRoot.getAttribute("height"));
+				Element holdGroup = mRoot.getChild(2);
+				for (int i = 0; i < holdGroup.getChildCount(); ++i){
+					xmlWriter
+						.element("object")
+							.element("properties")
+								.element("property")
+									.attribute("name", "type")
+									.attribute("value", holdGroup.getChild(i).getChild(0).getChild(0).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "beat")
+									.attribute("value", holdGroup.getChild(i).getChild(0).getChild(1).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "slot")
+									.attribute("value", holdGroup.getChild(i).getChild(0).getChild(2).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "hold")
+									.attribute("value", holdGroup.getChild(i).getChild(0).getChild(3).get("value"))
+								.pop()
+							.pop()
+						.pop();
+				}
+				xmlWriter.pop()
+				//Markers
 				.element("objectgroup")
 					.attribute("name", "Markers")
 					.attribute("width", mRoot.getAttribute("width"))
 					.attribute("height", mRoot.getAttribute("height"))
 				.pop()
-			.pop().close();
+			.pop();
+			xmlWriter.close();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void addNote(Note note){
+		
+		Element noteGroup = mRoot.getChild(1);
+		Element noteEle = new Element("object", noteGroup);
+		Element propEle = new Element("properties", noteEle);
+		
+		Element typeEle = new Element("property", propEle);
+		typeEle.setAttribute("name", "type");
+		typeEle.setAttribute("value", note.type.toString());
+		propEle.addChild(typeEle);
+		
+		Element beatEle = new Element("property", propEle);
+		beatEle.setAttribute("name", "beat");
+		beatEle.setAttribute("value", Float.toString(note.beat));
+		propEle.addChild(beatEle);
+		
+		Element slotEle = new Element("property", propEle);
+		slotEle.setAttribute("name", "slot");
+		slotEle.setAttribute("value", note.slot.toString());
+		propEle.addChild(slotEle);
+		
+		noteEle.addChild(propEle);
+		noteGroup.addChild(noteEle);
+	}
+	
+	public void removeNote(Note note){
+		
+		Element noteGroup = mRoot.getChild(1);
+		for (int i = 0; i < noteGroup.getChildCount(); ++i){
+			
+			Element noteEle = noteGroup.getChild(i);
+			Element beatEle = noteEle.getChild(0).getChild(1);
+			Element slotEle = noteEle.getChild(0).getChild(2);
+			float beat = Float.parseFloat(beatEle.getAttribute("value"));
+			NoteSlot slot = NoteSlot.stringToSlot(slotEle.getAttribute("value"));
+			if (Math.abs(beat - note.beat) < 1.f / 64 && note.slot == slot){
+				noteEle.remove();
+				return;
+			}
+		}
+	}
+	
+	public void addNotes(ArrayList<Note> notes){
+		
+		for(Note note : notes)
+			addNote(note);
+	}
+	
+	public void removeNotes(ArrayList<Note> notes){
+		
+		for(Note note : notes)
+			removeNote(note);
+	}
+	
+	public void addHold(HoldNote hold){
+		
+		Element holdGroup = mRoot.getChild(2);
+		Element holdEle = new Element("object", holdGroup);
+		Element propEle = new Element("properties", holdEle);
+		
+		Element typeEle = new Element("property", propEle);
+		typeEle.setAttribute("name", "type");
+		typeEle.setAttribute("value", hold.type.toString());
+		propEle.addChild(typeEle);
+		
+		Element beatEle = new Element("property", propEle);
+		beatEle.setAttribute("name", "beat");
+		beatEle.setAttribute("value", Float.toString(hold.beat));
+		propEle.addChild(beatEle);
+		
+		Element slotEle = new Element("property", propEle);
+		slotEle.setAttribute("name", "slot");
+		slotEle.setAttribute("value", hold.slot.toString());
+		propEle.addChild(slotEle);
+		
+		Element holdDurEle = new Element("property", propEle);
+		holdDurEle.setAttribute("name", "hold");
+		holdDurEle.setAttribute("value", Float.toString(hold.getHoldDuration()));
+		propEle.addChild(holdDurEle);
+		
+		holdEle.addChild(propEle);
+		holdGroup.addChild(holdEle);
+	}
+	
+	public void removeHold(HoldNote hold){
+		
+		Element noteGroup = mRoot.getChild(2);
+		for (int i = 0; i < noteGroup.getChildCount(); ++i){
+			
+			Element noteEle = noteGroup.getChild(i);
+			Element beatEle = noteEle.getChild(0).getChild(1);
+			Element slotEle = noteEle.getChild(0).getChild(2);
+			float beat = Float.parseFloat(beatEle.getAttribute("value"));
+			NoteSlot slot = NoteSlot.stringToSlot(slotEle.getAttribute("value"));
+			if (Math.abs(beat - hold.beat) < 1.f / 64 && hold.slot == slot){
+				noteEle.remove();
+				return;
+			}
+		}
+	}
+	
+	public void addHolds(ArrayList<HoldNote> holds){
+		
+		for(HoldNote hold : holds){
+			addHold(hold);
+		}
+	}
+	
+	public void removeHolds(ArrayList<HoldNote> holds){
+		
+		for(HoldNote hold : holds)
+			removeHold(hold);
+	}
+	
+	public void addMarker(BPMMarker marker){
+		
+	}
+	
+	public void addMarkers(ArrayList<BPMMarker> markers){
+		
 	}
 
 }

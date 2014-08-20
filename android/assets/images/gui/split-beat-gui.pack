@@ -248,23 +248,37 @@ red_sliderDown
   orig: 28, 42
   offset: 0, 0
   index: -1
-red_sliderLeft
+grey_sliderLeft
   rotate: false
   xy: 295, 39
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
-red_sliderRight
+grey_sliderRight
   rotate: false
   xy: 336, 39
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
   index: -1
-yellow_sliderRight
+red_sliderLeft
   rotate: false
   xy: 286, 6
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+red_sliderRight
+  rotate: false
+  xy: 327, 6
+  size: 39, 31
+  orig: 39, 31
+  offset: 0, 0
+  index: -1
+yellow_sliderRight
+  rotate: false
+  xy: 798, 90
   size: 39, 31
   orig: 39, 31
   offset: 0, 0
@@ -292,7 +306,7 @@ red_cross
   index: -1
 red_tick
   rotate: false
-  xy: 798, 104
+  xy: 575, 84
   size: 17, 17
   orig: 17, 17
   offset: 0, 0

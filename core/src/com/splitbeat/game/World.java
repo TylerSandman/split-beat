@@ -95,6 +95,18 @@ public class World implements Disposable{
 		for(MapObject note : notes)
 			mRightNotes.add(NoteFactory.createNote(note, mRightMap, mScoreManager, false));
 		
+		MapLayer holdLayer =  mLeftMap.getLayers().get(1);
+		MapObjects holds = holdLayer.getObjects();
+		
+		for(MapObject note : holds)		
+			mLeftNotes.add(NoteFactory.createNote(note, mLeftMap, mScoreManager, true));
+		
+		holdLayer = mRightMap.getLayers().get(1);
+		holds = holdLayer.getObjects();
+		
+		for(MapObject note : holds)
+			mRightNotes.add(NoteFactory.createNote(note, mRightMap, mScoreManager, false));
+		
 		ArrayList<Note> allNotes = new ArrayList<Note>();
 		allNotes.addAll(mLeftNotes);
 		allNotes.addAll(mRightNotes);
@@ -107,8 +119,8 @@ public class World implements Disposable{
 		
 		//Parse BPM markers
 		mLeftMarkers = new ArrayList<BPMMarker>();
-		if (mLeftMap.getLayers().getCount() > 1){
-			MapLayer markerLayer = mLeftMap.getLayers().get(1);
+		if (mLeftMap.getLayers().getCount() > 2){
+			MapLayer markerLayer = mLeftMap.getLayers().get(2);
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
@@ -117,8 +129,8 @@ public class World implements Disposable{
 		}
 		
 		mRightMarkers = new ArrayList<BPMMarker>();
-		if (mRightMap.getLayers().getCount() > 1){
-			MapLayer markerLayer = mRightMap.getLayers().get(1);
+		if (mRightMap.getLayers().getCount() > 2){
+			MapLayer markerLayer = mRightMap.getLayers().get(2);
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){

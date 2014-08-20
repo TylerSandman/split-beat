@@ -16,58 +16,11 @@ public class NoteFactory {
 		String bpmStr= map.getProperties().get("bpm", String.class);
 		float bpm = Float.parseFloat(bpmStr);
 		
-		float notePos = nObject.getProperties().get("x", Float.class);
-		float beat = (mapWidth - (notePos / tileWidth) - 1) / 4.f;
-		float yPos = 3 * tileHeight - nObject.getProperties().get("y", Float.class);
-		int slotPos = MathUtils.floor(yPos / tileHeight);
-		int gID = nObject.getProperties().get("gid", Integer.class);
-		NoteType type;
-		NoteSlot slot;
+		String beatStr = nObject.getProperties().get("beat", String.class);
+		float beat = Float.parseFloat(beatStr);
+		NoteSlot slot = NoteSlot.stringToSlot(nObject.getProperties().get("slot", String.class));
+		NoteType type = NoteType.stringToType(nObject.getProperties().get("type", String.class));
 
-		switch(slotPos){
-		case 1:
-			if (leftTrack)
-				slot = NoteSlot.TOP_LEFT;
-			else
-				slot = NoteSlot.TOP_RIGHT;
-			break;
-		case 2:
-			if (leftTrack)
-				slot = NoteSlot.MIDDLE_LEFT;
-			else
-				slot = NoteSlot.MIDDLE_RIGHT;
-			break;
-		case 3:
-			if (leftTrack)
-				slot = NoteSlot.BOTTOM_LEFT;
-			else
-				slot = NoteSlot.BOTTOM_RIGHT;
-			break;
-		default:
-			if (leftTrack)
-				slot = NoteSlot.TOP_LEFT;
-			else
-				slot = NoteSlot.TOP_RIGHT;
-			break;
-		}
-		
-		switch(gID){
-		case Constants.RED_ID:
-			type = NoteType.QUARTER;
-			break;
-		case Constants.BLUE_ID:
-			type = NoteType.EIGHTH;
-			break;
-		case Constants.GREEN_ID:
-			type = NoteType.SIXTEENTH;
-			break;
-		case Constants.PURPLE_ID:
-			type = NoteType.EIGHTH;
-			break;
-		default:
-			type = NoteType.QUARTER;
-			break;
-		}
 		if (nObject.getProperties().get("hold") != null){
 			String holdDurationStr = nObject.getProperties().get("hold", String.class);
 			float holdDuration = (float) Double.parseDouble(holdDurationStr);

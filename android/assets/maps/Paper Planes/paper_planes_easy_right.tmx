@@ -1,48 +1,54 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" width="1000" height="3" tilewidth="40" tileheight="40">
- <properties>
-  <property name="bpm" value="175"/>
-  <property name="offset" value="-0.04"/>
-  <property name="artist" value="Virtual Riot"/>
-  <property name="title" value="Paper Planes"/>
-  <property name="length" value="220"/>
- </properties>
- <tileset firstgid="1" name="split-beat-tileset" tilewidth="40" tileheight="40" spacing="12">
-  <image source="split-beat-tileset.png" width="256" height="128"/>
- </tileset>
- <objectgroup name="Notes" width="1000" height="3">
-  <object gid="8" x="34680" y="80"/>
-  <object gid="8" x="33080" y="120"/>
-  <object gid="8" x="33400" y="80"/>
-  <object gid="8" x="32440" y="120"/>
-  <object gid="8" x="34040" y="80"/>
-  <object gid="8" x="33720" y="120"/>
-  <object gid="8" x="34360" y="120"/>
-  <object gid="8" x="32760" y="80"/>
-  <object gid="8" x="32120" y="80"/>
-  <object gid="8" x="30520" y="120"/>
-  <object gid="8" x="30840" y="80"/>
-  <object gid="8" x="29880" y="120"/>
-  <object gid="8" x="31480" y="80"/>
-  <object gid="8" x="31160" y="120"/>
-  <object gid="8" x="31800" y="120"/>
-  <object gid="8" x="30200" y="80"/>
-  <object gid="8" x="29560" y="80"/>
-  <object gid="8" x="27960" y="120"/>
-  <object gid="8" x="28280" y="80"/>
-  <object gid="8" x="27320" y="120"/>
-  <object gid="8" x="28920" y="80"/>
-  <object gid="8" x="28600" y="120"/>
-  <object gid="8" x="29240" y="120"/>
-  <object gid="8" x="27640" y="80"/>
-  <object gid="8" x="27000" y="80"/>
-  <object gid="8" x="25400" y="120"/>
-  <object gid="8" x="25720" y="80"/>
-  <object gid="8" x="24760" y="120"/>
-  <object gid="8" x="26360" y="80"/>
-  <object gid="8" x="26040" y="120"/>
-  <object gid="8" x="26680" y="120"/>
-  <object gid="8" x="25080" y="80"/>
- </objectgroup>
- <objectgroup name="Markers" width="1000" height="3"/>
+<map version="1.0" orientation="orthogonal" width="2567" height="3" tilewidth="1" tileheight="1">
+	<properties>
+		<property name="bpm" value="175.0"/>
+		<property name="offset" value="-0.04"/>
+		<property name="artist" value="Virtual Riot"/>
+		<property name="length" value="220"/>
+	</properties>
+	<objectgroup name="Notes" width="2567" height="3">
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="33.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="35.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="37.0"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="39.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="41.0"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="43.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+	</objectgroup>
+	<objectgroup name="Holds" width="2567" height="3"/>
+	<objectgroup name="Markers" width="2567" height="3"/>
 </map>

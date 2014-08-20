@@ -93,12 +93,14 @@ public class SongSelectScreen extends AbstractGameScreen {
 					highlightSong(newIndex);
 					break;
 				case(Keys.LEFT):
+					if (mSelectedIndex < 0) break;
 					Difficulty prevSelect = mSelectedDifficulty.prev();
 					while (mSongDataArr.get(mSelectedIndex).getLeftMap(prevSelect) == null)
 						prevSelect = prevSelect.prev();
 					selectDifficulty(prevSelect);
 					break;
 				case(Keys.RIGHT):
+					if (mSelectedIndex < 0) break;
 					Difficulty nextSelect = mSelectedDifficulty.next();
 					while (mSongDataArr.get(mSelectedIndex).getLeftMap(nextSelect) == null)
 						nextSelect = nextSelect.next();
@@ -181,7 +183,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 	}
 	
 	private void selectDifficulty(Difficulty difficulty){
-		
+				
 		mSelectedDifficulty = difficulty;
 		
 		//Hide all sliders first
@@ -352,6 +354,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		easyTable.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				if (mSelectedIndex < 0) return true;
 				selectDifficulty(Difficulty.Easy);
 				return true;
 			}
@@ -360,6 +363,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mediumTable.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				if (mSelectedIndex < 0) return true;
 				selectDifficulty(Difficulty.Medium);
 				return true;
 			}
@@ -368,6 +372,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		hardTable.addListener(new ClickListener() {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
+				if (mSelectedIndex < 0) return true;
 				selectDifficulty(Difficulty.Hard);
 				return true;
 			}

@@ -26,7 +26,43 @@ public class Constants {
 		SIXTEENTH,
 		TWENTY_FOURTH,
 		THIRTY_SECOND,
-		OUTLINE
+		OUTLINE;
+		
+		public String toString(){
+			switch(this){
+			case QUARTER:
+				return "quarter";
+			case EIGHTH:
+				return "eighth";
+			case TWELVTH:
+				return "twelvth";
+			case SIXTEENTH:
+				return "sixteenth";
+			case TWENTY_FOURTH:
+				return "twenty_fourth";
+			case THIRTY_SECOND:
+				return "thirty_second";
+			default:
+				return "quarter";
+			}
+		}
+		
+		public static NoteType stringToType(String str){
+			
+			if (str.equals("quarter"))
+				return NoteType.QUARTER;
+			if (str.equals("eighth"))
+				return NoteType.EIGHTH;
+			if (str.equals("twelvth"))
+				return NoteType.TWELVTH;
+			if (str.equals("sixteenth"))
+				return NoteType.SIXTEENTH;
+			if (str.equals("twenty_fourth"))
+				return NoteType.TWENTY_FOURTH;
+			if (str.equals("thirty_second"))
+				return NoteType.THIRTY_SECOND;
+			return NoteType.QUARTER;
+		}
 	}
 	
 	public static enum NoteSlot{
@@ -35,7 +71,44 @@ public class Constants {
 		BOTTOM_LEFT,
 		TOP_RIGHT,
 		MIDDLE_RIGHT,
-		BOTTOM_RIGHT
+		BOTTOM_RIGHT;
+		
+		public String toString(){
+			
+			switch(this){
+			case TOP_LEFT:
+				return "top_left";
+			case MIDDLE_LEFT:
+				return "middle_left";
+			case BOTTOM_LEFT:
+				return "bottom_left";
+			case TOP_RIGHT:
+				return "top_right";
+			case MIDDLE_RIGHT:
+				return "middle_right";
+			case BOTTOM_RIGHT:
+				return "bottom_right";
+			default:
+				return "top_left";
+			}
+		}
+		
+		public static NoteSlot stringToSlot(String str){
+			
+			if (str.equals("top_left"))
+				return NoteSlot.TOP_LEFT;
+			if (str.equals("middle_left"))
+				return NoteSlot.MIDDLE_LEFT;
+			if (str.equals("bottom_left"))
+				return NoteSlot.BOTTOM_LEFT;
+			if (str.equals("top_right"))
+				return NoteSlot.TOP_RIGHT;
+			if (str.equals("middle_right"))
+				return NoteSlot.MIDDLE_RIGHT;
+			if (str.equals("bottom_right"))
+				return NoteSlot.BOTTOM_RIGHT;
+			return NoteSlot.TOP_LEFT;
+		}
 	}
 	
 	public static enum Timing{

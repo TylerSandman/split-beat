@@ -227,6 +227,8 @@ public class EditSelectionScreen extends AbstractGameScreen {
 	
 	private void onImportClicked(){}
 	
-	private void onEditClicked(){}
+	private void onEditClicked(){
+		game.setScreen(new EditExistingScreen(game));
+	}
 
 }

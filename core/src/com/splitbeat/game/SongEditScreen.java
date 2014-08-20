@@ -13,6 +13,10 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.MapObjects;
+import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -31,7 +35,11 @@ public class SongEditScreen extends AbstractGameScreen {
 	private OrthographicCamera mRightCamera;
 	private OrthographicCamera mHUDCamera;
 	private SongData mData;
+	private String mName;
+	private Difficulty mDifficulty;
 	
+	private TiledMap mLeftMap;
+	private TiledMap mRightMap;
 	private ArrayList<BPMMarker> mLeftMarkers;
 	private ArrayList<BPMMarker> mRightMarkers;
 	private ArrayList<Note> mLeftRegularNotes;
@@ -70,13 +78,15 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private ScoreManager mScoreManager;
 	
-	SongEditScreen(Game game){
+	SongEditScreen(Game game, String name, Difficulty difficulty){
 		super(game);
+		mName = name;
+		mDifficulty = difficulty;
 	}
 	
 	private void init(){
 		
-		mBuilder = new TmxMapBuilder();
+		mBuilder = new TmxMapBuilder(false);
 		mShapeRenderer = new ShapeRenderer();
 		mBatch = new SpriteBatch();
 		mLeftMarkers = new ArrayList<BPMMarker>();
@@ -113,15 +123,6 @@ public class SongEditScreen extends AbstractGameScreen {
 				Gdx.files.internal(Constants.GUI_SKIN),
 				new TextureAtlas(Constants.TEXTURE_ATLAS_GUI));
 		
-		//Dummy data for now
-		mData = new SongData("Test Map");
-		mData.setArtist("Tyler.S");
-		mData.setBpm(170.f);
-		mData.setTitle("Test Map");
-		mData.setOffset(-0.04f);
-		mData.setLength(220);
-		mBuilder.create(mData);
-		
 		//Configure cameras
 		float w = Gdx.graphics.getWidth();
 		
@@ -154,9 +155,48 @@ public class SongEditScreen extends AbstractGameScreen {
 		mLeftCamera.update();
 		mRightCamera.update();
 		
+		mData = Assets.instance.maps.dataMap.get(mName);
+		mBuilder.create(mData, mDifficulty);
+		mLeftMap = mData.getLeftMap(mDifficulty);
+		mRightMap = mData.getRightMap(mDifficulty);
+		
 		buildButtons();
 		buildInformation();
 		buildStage();
+		
+		//Parse tracks
+		MapLayer noteLayer =  mRightMap.getLayers().get(0);
+		MapObjects notes = noteLayer.getObjects();
+		
+		//Regular Notes
+		for(MapObject note : notes){
+			Note toAdd = NoteFactory.createNote(note, mRightMap, mScoreManager, false);
+			placeNote(toAdd.beat, toAdd.slot, toAdd.type);
+		}
+		
+		noteLayer = mRightMap.getLayers().get(1);
+		notes = noteLayer.getObjects();
+		
+		//Hold Notes
+		for(MapObject note : notes){
+			HoldNote toAdd = (HoldNote) NoteFactory.createNote(note, mRightMap, mScoreManager, false);
+			placeHoldNote(toAdd.beat, toAdd.getHoldDuration(), toAdd.slot, toAdd.type);
+		}
+		
+		//BPM markers	
+		if (mRightMap.getLayers().getCount() > 2){
+			
+			noteLayer = mRightMap.getLayers().get(2);
+			notes = noteLayer.getObjects();
+			
+			MapLayer markerLayer = mRightMap.getLayers().get(2);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap, false));
+			}
+		}
+		
 		
 		mStage.addListener(new InputListener(){
 			
@@ -183,6 +223,10 @@ public class SongEditScreen extends AbstractGameScreen {
 					break;
 				case(Keys.M):
 					onSlotPress(NoteSlot.BOTTOM_RIGHT);
+					break;
+				case(Keys.S):
+					if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT))
+						mBuilder.save();
 					break;
 				case(Keys.ENTER):
 					 //TODO SOMETHING
@@ -418,12 +462,16 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		ArrayList<Note> toRemove = new ArrayList<Note>();
 		for(Note note : mRightRegularNotes){
-			if (note.isFlaggedForRemoval())
+			if (note.isFlaggedForRemoval()){
 				toRemove.add(note);
+				mBuilder.removeNote(note);
+			}
 		}
-		for(Note note : mRightHoldNotes){
-			if (note.isFlaggedForRemoval())
+		for(HoldNote note : mRightHoldNotes){
+			if (note.isFlaggedForRemoval()){
 				toRemove.add(note);
+				mBuilder.removeHold(note);
+			}
 		}
 		mRightRegularNotes.removeAll(toRemove);
 		mRightHoldNotes.removeAll(toRemove);
@@ -543,7 +591,48 @@ public class SongEditScreen extends AbstractGameScreen {
 		return false;
 	}
 	
-	private void placeNote(NoteSlot slot, NoteType type){
+	private void placeNote(float beat, NoteSlot slot, NoteType type){
+		
+		Note note = new Note(beat, slot, type, mScoreManager);
+		
+		//Center note relative to track and up/down buttons
+		note.setPosition(
+				mRightCamera.position.x - note.getBounds().width / 2.f,
+				mRightCamera.position.y - note.getBounds().height / 2.f);
+		
+		//Move to appropriate slot
+		float moveIncrement = 2 * note.getBounds().height - note.getBounds().height / 2;
+		switch(slot){
+		case MIDDLE_LEFT:
+			break;
+		case TOP_LEFT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_LEFT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		case MIDDLE_RIGHT:
+			break;
+		case TOP_RIGHT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_RIGHT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		}
+		
+		//Move to starting position (beat 0)
+		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		//Move to appropriate beat
+		float measureWidthPixels = note.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		note.moveBy(-measureWidthPixels * beat, 0.f);
+		
+		mRightRegularNotes.add(note);
+		mBuilder.addNote(note);
+	}
+	
+	private void placeNewNote(NoteSlot slot, NoteType type){
 		
 		Note note = new Note(mCurrentBeat, slot, type, mScoreManager);
 		
@@ -577,9 +666,52 @@ public class SongEditScreen extends AbstractGameScreen {
 		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
 		mRightRegularNotes.add(note);
+		mBuilder.addNote(note);
 	}
 	
-	private void placeHoldNote(NoteSlot slot, NoteType type){
+	private void placeHoldNote(float beat, float duration, NoteSlot slot, NoteType type){
+		
+		removeNote(slot, mCurrentBeat);
+		HoldNote note = new HoldNote(beat, slot, type, duration, mData.getBpm(), mScoreManager);
+		
+		//Center note relative to track and up/down buttons
+		note.setPosition(
+				mRightCamera.position.x - note.getHitBounds().width / 2.f,
+				mRightCamera.position.y - note.getHitBounds().height / 2.f);
+		
+		//Move to appropriate slot
+		float moveIncrement = 2 * note.getHitBounds().height - note.getHitBounds().height / 2;
+		switch(slot){
+		case MIDDLE_LEFT:
+			break;
+		case TOP_LEFT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_LEFT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		case MIDDLE_RIGHT:
+			break;
+		case TOP_RIGHT:
+			note.moveBy(0, moveIncrement);
+			break;
+		case BOTTOM_RIGHT:
+			note.moveBy(0, -moveIncrement);
+			break;
+		}
+		
+		//Move to starting position (beat 0)
+		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		//Move to appropriate beat
+		float measureWidthPixels = note.getHitBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		note.moveBy(-measureWidthPixels * beat, 0.f);
+		
+		mRightHoldNotes.add(note);
+		mBuilder.addHold(note);
+	}
+	
+	private void placeNewHoldNote(NoteSlot slot, NoteType type){
 		
 		removeNote(slot, mCurrentBeat);
 		HoldNote note = new HoldNote(mCurrentBeat, slot, type, 0.f, mData.getBpm(), mScoreManager);
@@ -764,7 +896,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Initially place a hold note, if the hold duration is 0
 		//it will be changed to a normal note
-		placeHoldNote(slot, type);
+		placeNewHoldNote(slot, type);
 	}
 	
 	private void onSlotRelease(NoteSlot slot){
@@ -774,15 +906,17 @@ public class SongEditScreen extends AbstractGameScreen {
 		for(HoldNote note : mActiveHoldNotes){
 			if (note.getHoldDuration() < 1.f / 64 && note.slot == slot){
 				toRemove.add(note);
-				placeNote(slot, note.type);
+				placeNewNote(slot, note.type);
 			}
 		}
 		mActiveHoldNotes.removeAll(toRemove);
 		
 		//Place rest of hold notes
 		for(HoldNote note : mActiveHoldNotes){
-			if (note.slot == slot)
+			if (note.slot == slot){
 				mRightHoldNotes.add(note);
+				mBuilder.addHold(note);
+			}
 		}
 		mActiveHoldNotes.removeAll(mRightHoldNotes);		
 	}
