@@ -41,6 +41,7 @@ public class DropDownMenu<T> extends Widget implements Disableable {
 	static final Vector2 tmpCoords = new Vector2();
 	SelectBoxStyle style;
 	final Array<T> items = new Array();
+	Array<InputListener> callbacks = new Array<InputListener>();
 	T selected;
 	private final TextBounds bounds = new TextBounds();
 	ListScroll scroll;
@@ -115,6 +116,8 @@ public class DropDownMenu<T> extends Widget implements Disableable {
 		items.addAll(newItems);
 		scroll.list.setItems(items);
 		invalidateHierarchy();
+		for(T item : items)
+			callbacks.add(new InputListener());
 	}
 	
 	public void setItems (Array<T> newItems) {
@@ -123,10 +126,16 @@ public class DropDownMenu<T> extends Widget implements Disableable {
 		items.addAll(newItems);
 		scroll.list.setItems(items);
 		invalidateHierarchy();
+		for(T item : items)
+			callbacks.add(new InputListener());
 	}
 
 	public Array<T> getItems () {
 		return items;
+	}
+	
+	public void addItemListener(int index, InputListener listener){
+		callbacks.set(index, listener);
 	}
 	
 	public void layout () {
@@ -280,11 +289,13 @@ public class DropDownMenu<T> extends Widget implements Disableable {
 					if (event.getTarget() == list) return true;
 					setSelected(selected); // Revert.
 					hideList();
+					callbacks.get(list.getSelectedIndex()).touchDown(event, x, y, pointer, button);
 					return false;
 				}
 				
 				public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 					if (hit(x, y, true) == list) {
+						callbacks.get(list.getSelectedIndex()).touchUp(event, x, y, pointer, button);
 						ChangeEvent changeEvent = Pools.obtain(ChangeEvent.class);
 						DropDownMenu.this.fire(changeEvent);
 						Pools.free(changeEvent);

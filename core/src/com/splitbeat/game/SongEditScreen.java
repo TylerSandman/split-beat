@@ -26,6 +26,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
+import com.badlogic.gdx.utils.Pools;
 import com.splitbeat.game.Constants.NoteSlot;
 import com.splitbeat.game.Constants.NoteType;
 public class SongEditScreen extends AbstractGameScreen {
@@ -65,6 +67,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private Image mDownButton;
 	
 	private Table mInformationTable;
+	private Image mMenuBackground;
 	private Label mCurrentBeatLabel;
 	private Label mCurrentSecondLabel;
 	private Label mSnapToLabel;
@@ -296,10 +299,32 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void buildMenu(){
 
+		mMenuBackground = new Image(Assets.instance.gui.redPanelRepeat);
+		mMenuBackground.setWidth(Gdx.graphics.getWidth());
+		mMenuBackground.setPosition(0, Gdx.graphics.getHeight() - mMenuBackground.getHeight());
+		
 		mEditDropDownMenu = new DropDownMenu<String>(mSkin, "default", "Edit");
 		mEditDropDownMenu.setItems(mEditItems);
-		mEditDropDownMenu.setWidth(Gdx.graphics.getWidth() / 2.f);
+		mEditDropDownMenu.addItemListener(0, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				mBuilder.save();
+			}
+
+		});
+		float maxWidth = 0.f;
+		for(String item : mEditDropDownMenu.getItems()){
+			float strWidth = mEditDropDownMenu.getStyle().font.getBounds(item).width;
+			if (strWidth > maxWidth)
+				maxWidth = strWidth; 
+		}
+		mEditDropDownMenu.setWidth(maxWidth + 2 * Constants.CELL_PADDING);
 		mEditDropDownMenu.setPosition(0, Gdx.graphics.getHeight() - mEditDropDownMenu.getHeight());
+		
+		//Have to manually add left padding
+		mEditDropDownMenu.getStyle().background.setLeftWidth(Constants.CELL_PADDING);
+		mEditDropDownMenu.getStyle().background.setRightWidth(Constants.CELL_PADDING);
+		mEditDropDownMenu.getList().getStyle().selection.setLeftWidth(Constants.CELL_PADDING);
 	}
 	
 	private void buildButtons(){
@@ -410,6 +435,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mStage.addActor(mUpButton);
 		mStage.addActor(mDownButton);		
 		mStage.addActor(mInformationTable);
+		mStage.addActor(mMenuBackground);
 		mStage.addActor(mEditDropDownMenu);
 
 		//Center origins	
