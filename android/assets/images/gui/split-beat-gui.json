@@ -28,6 +28,34 @@ com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle: {
     black: {
     	font: medium, fontColor: black
     }
-}
+},
 
+com.badlogic.gdx.scenes.scene2d.ui.List$ListStyle: {
+
+	default: {
+		font: medium, fontColorSelected: black, fontColorUnselected: black, selection: highlighted_bg
+	}
+},
+
+com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle: {
+
+	default: {
+		background: red_bg
+	}
+},
+
+com.badlogic.gdx.scenes.scene2d.ui.SelectBox$SelectBoxStyle: {
+
+	default: {
+		font: medium, fontColor: white, background: red_panel_repeat, listStyle: default, scrollStyle: default
+	}
+
+},
+
+com.splitbeat.game.DropDownMenu$SelectBoxStyle: {
+
+	default: {
+		font: medium, fontColor: white, background: red_panel_repeat, listStyle: default, scrollStyle: default
+	}
+}
 }

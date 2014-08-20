@@ -159,7 +159,7 @@ public class Constants {
 	public static final float GLOW_ANIMATION_TIME = 0.1f;
 	public static final float OUTLINE_PRESS_ANIMATION_TIME = 0.1f;
 	public static final float SYNC_BEAT_DIFFERENCE_THRESHOLD = 0.1f;
-	public static final float MAX_ZOOM = 2.0f;
+	public static final float MAX_ZOOM = 3.0f;
 	public static final float MIN_ZOOM = 1.0f;
 	public static final float ZOOM_INCREMENT = 0.1f;
 }

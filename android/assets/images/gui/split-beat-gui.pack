@@ -311,3 +311,17 @@ red_tick
   orig: 17, 17
   offset: 0, 0
   index: -1
+highlighted_bg
+  rotate: false
+  xy: 377, 150
+  size: 2, 2
+  orig: 2, 2
+  offset: 0, 0
+  index: -1
+red_bg
+  rotate: false
+  xy: 381, 150
+  size: 2, 2
+  orig: 2, 2
+  offset: 0, 0
+  index: -1

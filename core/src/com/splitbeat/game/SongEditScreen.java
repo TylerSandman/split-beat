@@ -57,6 +57,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	private ShapeRenderer mShapeRenderer;
 	SpriteBatch mBatch;
 	
+	private DropDownMenu<String> mEditDropDownMenu;
+	
 	private Image mLeftButton;
 	private Image mRightButton;
 	private Image mUpButton;
@@ -77,6 +79,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private boolean mPlacingHold;
 	
 	private ScoreManager mScoreManager;
+	private String[] mEditItems;
 	
 	SongEditScreen(Game game, String name, Difficulty difficulty){
 		super(game);
@@ -97,6 +100,17 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightHoldNotes = new ArrayList<HoldNote>();
 		mActiveHoldNotes = new ArrayList<HoldNote>();
 		mScoreManager = new ScoreManager();
+		mEditItems = new String[]{
+				"Steps information",
+				"Play all",
+				"Play from current beat",
+				"Jump to beat",
+				"Cut",
+				"Copy",
+				"Paste",
+				"Save",
+				"Exit"
+		};
 		mNoteColors = new Color[]{
 				Color.RED,
 				Color.BLUE,
@@ -160,6 +174,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mLeftMap = mData.getLeftMap(mDifficulty);
 		mRightMap = mData.getRightMap(mDifficulty);
 		
+		buildMenu();
 		buildButtons();
 		buildInformation();
 		buildStage();
@@ -279,6 +294,14 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 	}
 	
+	private void buildMenu(){
+
+		mEditDropDownMenu = new DropDownMenu<String>(mSkin, "default", "Edit");
+		mEditDropDownMenu.setItems(mEditItems);
+		mEditDropDownMenu.setWidth(Gdx.graphics.getWidth() / 2.f);
+		mEditDropDownMenu.setPosition(0, Gdx.graphics.getHeight() - mEditDropDownMenu.getHeight());
+	}
+	
 	private void buildButtons(){
 		
 		mLeftButton = new Image(Assets.instance.gui.leftArrow);
@@ -387,8 +410,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mStage.addActor(mUpButton);
 		mStage.addActor(mDownButton);		
 		mStage.addActor(mInformationTable);
-		
-		
+		mStage.addActor(mEditDropDownMenu);
+
 		//Center origins	
 		mLeftButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
 		mRightButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
