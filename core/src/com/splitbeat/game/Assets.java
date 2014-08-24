@@ -1,6 +1,7 @@
 package com.splitbeat.game;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.maps.MapProperties;
@@ -139,6 +141,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		if (!leftPath.equals("") && !rightPath.equals("")){
 			mAssetManager.load(leftPath, TiledMap.class);
 			mAssetManager.load(rightPath, TiledMap.class);
+			mAssetManager.finishLoading();
 		}
 	}
 
@@ -170,6 +173,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		public final AtlasRegion rightArrow;
 		public final AtlasRegion upArrow;
 		public final AtlasRegion downArrow;
+		public final NinePatch greyPanelNinePatch;
 		AssetGUI(TextureAtlas atlas){
 			redPanelLeft = atlas.findRegion("red_panel_left");
 			redPanelRight = atlas.findRegion("red_panel_right");
@@ -186,6 +190,7 @@ public class Assets implements Disposable, AssetErrorListener{
 			rightArrow = atlas.findRegion("right_arrow");
 			upArrow = atlas.findRegion("up_arrow");
 			downArrow = atlas.findRegion("down_arrow");
+			greyPanelNinePatch = atlas.createPatch("grey_panel.9");
 		}
 	}
 	
@@ -221,6 +226,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		}
 	}
 	
+	//Maps MUST be loaded before music is
 	public class AssetMusic{
 		
 		public final Music sync;
@@ -228,7 +234,17 @@ public class Assets implements Disposable, AssetErrorListener{
 		AssetMusic(AssetManager am){
 			sync = am.get("music/sync.ogg", Music.class);
 			musicMap = new HashMap<String, Music>();
-			musicMap.put("Paper Planes", am.get("../android/assets/maps/Paper Planes/paper_planes.ogg", Music.class));
+			for (Map.Entry<String, SongData> entry : maps.dataMap.entrySet()){
+				String path = Constants.LOCAL_MAPS_PATH;
+				path += entry.getKey() + "/";
+				path += entry.getKey().toLowerCase().replace(" ", "_");
+				String mp3Path = path + ".mp3";
+				String oggPath = path + ".ogg";
+				if (am.isLoaded(mp3Path))
+					musicMap.put(entry.getKey(), am.get(mp3Path, Music.class));
+				else if (am.isLoaded(oggPath))
+					musicMap.put(entry.getKey(), am.get(oggPath, Music.class));
+			};
 		}	
 	}
 	
@@ -282,7 +298,7 @@ public class Assets implements Disposable, AssetErrorListener{
 								am.get(hardPath + "right.tmx", TiledMap.class));
 						map = am.get(hardPath + "left.tmx", TiledMap.class);
 					}
-					if (map == null) return;
+					if (map == null) continue;
 					MapProperties props = map.getProperties();
 					
 					String bpmStr= map.getProperties().get("bpm", String.class);
@@ -302,6 +318,85 @@ public class Assets implements Disposable, AssetErrorListener{
 					dataMap.put(handle.name(), data);
 				}
 			}
+		}
+		
+		public void reloadMap(String name, Difficulty difficulty){
+			
+			if (dataMap.get(name) == null || dataMap.get(name).getLeftMap(difficulty) == null) return;
+			String mapsPath = Constants.LOCAL_MAPS_PATH + name + "/";
+			mapsPath += name.toLowerCase().replace(" ", "_");
+			mapsPath += "_";
+			mapsPath += difficulty.toString().toLowerCase();
+			String leftPath = mapsPath + "_left.tmx";
+			String rightPath = mapsPath + "_right.tmx";
+			mAssetManager.unload(leftPath);
+			mAssetManager.unload(rightPath);
+			mAssetManager.load(leftPath, TiledMap.class);
+			mAssetManager.load(rightPath, TiledMap.class);
+			mAssetManager.finishLoading();
+			SongData newData = new SongData(dataMap.get(name));
+			switch (difficulty){
+			case Easy:
+				newData.setEasyMaps(
+						mAssetManager.get(leftPath, TiledMap.class), 
+						mAssetManager.get(rightPath, TiledMap.class));
+				break;
+			case Medium:
+				newData.setMediumMaps(
+						mAssetManager.get(leftPath, TiledMap.class), 
+						mAssetManager.get(rightPath, TiledMap.class));
+				break;
+			case Hard:
+				newData.setHardMaps(
+						mAssetManager.get(leftPath, TiledMap.class), 
+						mAssetManager.get(rightPath, TiledMap.class));
+				break;
+			}
+			dataMap.put(name, newData);
+		}
+		
+		public void updateMap(String name, SongData updatedData){
+			
+			String mapsPath = Constants.LOCAL_MAPS_PATH + name;
+			FileHandle rootFolder = Gdx.files.local(mapsPath);
+			String newPath = mapsPath.replace(name, updatedData.getName());
+			String baseName = name.toLowerCase().replace(" ", "_");
+			String newBaseName = updatedData.getName().toLowerCase().replace(" ", "_");
+			
+			//Update folder name
+			rootFolder.moveTo(Gdx.files.local(newPath));
+			
+			FileHandle[] handles = Gdx.files.local(newPath).list();
+			
+			//Update map and music file names
+			for (FileHandle handle : handles){
+				handle.moveTo(
+					Gdx.files.local(handle.file().getPath().replace(
+							baseName,
+							newBaseName)));
+			}
+			
+			//Reload song data		
+			mapsPath += "/";
+			mapsPath += name.toLowerCase().replace(" ", "_");
+			mapsPath += "_";
+			String leftPath = "";
+			String rightPath = "";
+			for (Difficulty dif : Difficulty.values()){
+				leftPath = mapsPath + dif.toString().toLowerCase() + "_left.tmx";
+				rightPath = mapsPath + dif.toString().toLowerCase() + "_right.tmx";
+				if (mAssetManager.isLoaded(leftPath) && mAssetManager.isLoaded(rightPath)){
+					mAssetManager.unload(leftPath);
+					mAssetManager.unload(rightPath);
+					mAssetManager.load(
+							leftPath.replace(baseName, newBaseName).replace(name, updatedData.getName()), TiledMap.class);
+					mAssetManager.load(
+							rightPath.replace(baseName, newBaseName).replace(name, updatedData.getName()), TiledMap.class);
+				}
+			}
+			mAssetManager.finishLoading();
+			dataMap.remove(name);
+			dataMap.put(updatedData.getName(), updatedData);						
 		}
 	}
 	

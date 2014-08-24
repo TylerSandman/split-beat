@@ -95,6 +95,7 @@ public class World implements Disposable{
 		for(MapObject note : notes)
 			mRightNotes.add(NoteFactory.createNote(note, mRightMap, mScoreManager, false));
 		
+		//Holds
 		MapLayer holdLayer =  mLeftMap.getLayers().get(1);
 		MapObjects holds = holdLayer.getObjects();
 		

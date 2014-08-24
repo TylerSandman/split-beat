@@ -198,7 +198,7 @@ public class EditExistingScreen extends AbstractGameScreen {
 			Table scrollTable = new Table();
 			Stack stack = new Stack();
 			
-			Label nameLabel = new Label(data.getTitle(), mSkin, "black");
+			Label nameLabel = new Label(data.getName(), mSkin, "black");
 			nameLabel.setAlignment(Align.center);
 			Label artistLabel = new Label(data.getArtist(), mSkin, "black");
 			artistLabel.setAlignment(Align.center);

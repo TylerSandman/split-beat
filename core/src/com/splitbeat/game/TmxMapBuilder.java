@@ -18,6 +18,7 @@ public class TmxMapBuilder {
 	private SongData mData;
 	boolean mLeft;
 	private String mSongPath;
+	private Difficulty mDifficulty;
 	
 	TmxMapBuilder(boolean left){	
 		mLeft = left;
@@ -26,6 +27,7 @@ public class TmxMapBuilder {
 	public void create(SongData data, Difficulty difficulty){
 		
 		mData = data;
+		mDifficulty = difficulty;
 		String difStr = "";
 		switch (difficulty){
 		case Easy:
@@ -206,10 +208,35 @@ public class TmxMapBuilder {
 				.pop()
 			.pop();
 			xmlWriter.close();
+			Assets.instance.maps.reloadMap(mData.getName(), mDifficulty);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void updateSongData(SongData data){
+		
+		mSongPath.replace(
+				mData.getName().toLowerCase().replace(" ", "_"),
+				data.getName().toLowerCase().replace(" ", "_"));
+		mData = data;	
+		
+		int mapWidth = (int) Math.ceil(mData.getBpm() * mData.getLength() / 60.f * Constants.MEASURE_WIDTH_NOTES);	
+		mRoot.setAttribute("width", Integer.toString(mapWidth));
+		Element propertiesEle = mRoot.getChild(0);
+		
+		Element bpmEle = propertiesEle.getChild(0);
+		bpmEle.setAttribute("name", "bpm");
+		bpmEle.setAttribute("value", Float.toString(mData.getBpm()));
+		
+		Element offsetEle = propertiesEle.getChild(1);
+		offsetEle.setAttribute("name", "offset");
+		offsetEle.setAttribute("value", Float.toString(mData.getOffset()));
+		
+		Element artistEle = propertiesEle.getChild(2);
+		artistEle.setAttribute("name", "artist");
+		artistEle.setAttribute("value", mData.getArtist());		
 	}
 	
 	public void addNote(Note note){

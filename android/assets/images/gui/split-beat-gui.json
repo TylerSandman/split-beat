@@ -57,5 +57,21 @@ com.splitbeat.game.DropDownMenu$SelectBoxStyle: {
 	default: {
 		font: medium, fontColor: white, background: red_panel_repeat, listStyle: default, scrollStyle: default
 	}
+},
+
+com.badlogic.gdx.scenes.scene2d.ui.Window$WindowStyle: {
+
+	default: {
+		titleFont: medium, titleFontColor: black
+	}
+
+},
+
+com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
+
+	default: {
+		font: medium, fontColor: black, background: white_bg, cursor: black_bg, selection: red_bg
+	}
+
 }
 }

@@ -228,8 +228,9 @@ public class HoldNote extends Note {
 	
 	@Override
 	public void setPosition(float x, float y){
+		mDrawPosition.x += (x - position.x);
+		mDrawPosition.y += (y - position.y);
 		super.setPosition(x, y);
-		
 	}
 	
 	public void setHoldDuration(float beats){

@@ -20,14 +20,19 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldFilter;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField.TextFieldListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
-import com.badlogic.gdx.utils.Pools;
+import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.splitbeat.game.Constants.NoteSlot;
 import com.splitbeat.game.Constants.NoteType;
 public class SongEditScreen extends AbstractGameScreen {
@@ -55,6 +60,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private int[] mNoteQuantizations;
 	
 	private Stage mStage;
+	private InputListener mListener;
 	private Skin mSkin;
 	private ShapeRenderer mShapeRenderer;
 	SpriteBatch mBatch;
@@ -72,6 +78,15 @@ public class SongEditScreen extends AbstractGameScreen {
 	private Label mCurrentSecondLabel;
 	private Label mSnapToLabel;
 	private Label mLengthLabel;
+	
+	private Dialog mBeatJumpDialog;
+	private TextField mBeatJumpInput;
+	
+	private Dialog mSongInformationDialog;
+	private TextField mNameInput;
+	private TextField mArtistInput;
+	private TextField mBpmInput;
+	private TextField mOffsetInput;
 	
 	private Fraction mCurrentBeatFraction;
 	private float mCurrentBeat;
@@ -180,6 +195,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		buildMenu();
 		buildButtons();
 		buildInformation();
+		buildDialogs();
 		buildStage();
 		
 		//Parse tracks
@@ -215,8 +231,7 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		}
 		
-		
-		mStage.addListener(new InputListener(){
+		mListener = new InputListener(){
 			
 			@Override
 			public boolean keyDown(InputEvent event, int keycode){
@@ -271,8 +286,9 @@ public class SongEditScreen extends AbstractGameScreen {
 				}
 				return true;
 			}
-		});
+		};
 		
+		mStage.addListener(mListener);		
 		mRightOutlines = new OutlineNote[]{
 				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
 				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
@@ -305,13 +321,51 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		mEditDropDownMenu = new DropDownMenu<String>(mSkin, "default", "Edit");
 		mEditDropDownMenu.setItems(mEditItems);
+		
+		//Edit song information
 		mEditDropDownMenu.addItemListener(0, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				mNameInput.setText(mData.getName());
+				mArtistInput.setText(mData.getArtist());
+				mBpmInput.setText(Float.toString(mData.getBpm()));
+				mOffsetInput.setText(Float.toString(mData.getOffset()));
+				mSongInformationDialog.show(mStage);
+				mStage.removeListener(mListener);
+				mStage.setKeyboardFocus(mNameInput);
+				mSongInformationDialog.padTop(2 * Constants.CELL_PADDING);
+			}
+
+		});
+		//Jump to Beat
+		mEditDropDownMenu.addItemListener(3, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				mBeatJumpDialog.show(mStage);
+				mStage.removeListener(mListener);
+				mStage.setKeyboardFocus(mBeatJumpInput);
+				mBeatJumpDialog.padTop(2 * Constants.CELL_PADDING);
+			}
+		});
+		
+		//Save
+		mEditDropDownMenu.addItemListener(7, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				mBuilder.save();
 			}
 
 		});
+		
+		//Exit
+		mEditDropDownMenu.addItemListener(8, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				game.setScreen(new MenuScreen(game));
+			}
+
+		});
+		
 		float maxWidth = 0.f;
 		for(String item : mEditDropDownMenu.getItems()){
 			float strWidth = mEditDropDownMenu.getStyle().font.getBounds(item).width;
@@ -324,7 +378,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		//Have to manually add left padding
 		mEditDropDownMenu.getStyle().background.setLeftWidth(Constants.CELL_PADDING);
 		mEditDropDownMenu.getStyle().background.setRightWidth(Constants.CELL_PADDING);
-		mEditDropDownMenu.getList().getStyle().selection.setLeftWidth(Constants.CELL_PADDING);
+		mEditDropDownMenu.getList().getStyle().selection.setLeftWidth(Constants.CELL_PADDING);	
 	}
 	
 	private void buildButtons(){
@@ -428,6 +482,178 @@ public class SongEditScreen extends AbstractGameScreen {
 		mInformationTable.moveBy(moveX, moveY);
 	}
 	
+	private void buildDialogs(){
+		
+		buildBeatJumpDialog();
+		buildSongInformationDialog();	
+	}
+	
+	private void buildBeatJumpDialog(){
+		
+		mBeatJumpDialog = new Dialog("Jump to Beat", mSkin, "default");
+		mBeatJumpInput = new TextField("", mSkin);
+		
+		//Accept only digits
+		mBeatJumpInput.setTextFieldFilter(new TextFieldFilter(){
+			
+			public boolean acceptChar(TextField textField, char c){
+				if (Character.isDigit(c)) return true;
+				return false;
+			}
+		});
+		
+		mBeatJumpInput.setTextFieldListener(new TextFieldListener(){
+
+			@Override
+			public void keyTyped(TextField textField, char c) {
+				if (c == '\n' || c == '\r'){
+					if (!textField.getText().equals("")){
+						mBeatJumpDialog.hide();				
+						mStage.setKeyboardFocus(mEditDropDownMenu);
+						scrollToBeat(Integer.parseInt(textField.getText()));
+						mBeatJumpInput.setText("");
+						mStage.addListener(mListener);
+					}
+				}
+			}	
+		});
+		
+		mBeatJumpInput.setMaxLength(4);	
+		mBeatJumpDialog.setPosition(Gdx.graphics.getWidth() / 2.f, Gdx.graphics.getHeight() / 2.f);		
+
+		mBeatJumpDialog.row();
+		mBeatJumpDialog.add(mBeatJumpInput).pad(Constants.CELL_PADDING).row();
+		
+		Button goButton = new TextButton("Go", mSkin, "default");
+		
+		goButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
+				if (!mBeatJumpInput.getText().equals("")){
+					mBeatJumpDialog.hide();
+					mStage.setKeyboardFocus(mEditDropDownMenu);
+					scrollToBeat(Integer.parseInt(mBeatJumpInput.getText()));	
+					mBeatJumpInput.setText("");
+					mStage.addListener(mListener);
+				}
+				return true;
+			}
+		});
+		
+		mBeatJumpDialog.add(goButton).row();
+		mBeatJumpDialog.setBackground(new NinePatchDrawable(Assets.instance.gui.greyPanelNinePatch));
+	}
+	
+	private void buildSongInformationDialog(){
+		
+		mSongInformationDialog = new Dialog("Edit Song Info", mSkin, "default");
+		mSongInformationDialog.setPosition(Gdx.graphics.getWidth() / 2.f, Gdx.graphics.getHeight() / 2.f);		
+		mSongInformationDialog.row();
+		
+		mNameInput = new TextField(mData.getName(), mSkin);
+		mArtistInput = new TextField(mData.getArtist(), mSkin);
+		mBpmInput = new TextField(Float.toString(mData.getBpm()), mSkin);
+		mOffsetInput = new TextField(Float.toString(mData.getOffset()), mSkin);
+		
+		//Accept only digits and decimals
+		mBpmInput.setTextFieldFilter(new TextFieldFilter(){
+			
+			public boolean acceptChar(TextField textField, char c){
+				if (Character.isDigit(c) || c == '.') return true;
+				return false;
+			}
+		});
+		
+		//Accept only digits, decimals, and the negative sign
+		mOffsetInput.setTextFieldFilter(new TextFieldFilter(){
+			
+			public boolean acceptChar(TextField textField, char c){
+				if (Character.isDigit(c) || c == '.' || c == '-') return true;
+				return false;
+			}
+		});
+		
+		mSongInformationDialog.add(
+				new Label("Name", mSkin, "black"))
+				.align(Align.left)
+				.padBottom(Constants.CELL_PADDING)
+				.padTop(Constants.CELL_PADDING);
+		
+		mSongInformationDialog.add(mNameInput)
+				.align(Align.right)
+				.padBottom(Constants.CELL_PADDING)
+				.padTop(Constants.CELL_PADDING)
+				.row();
+		
+		mSongInformationDialog.add(
+				new Label("Artist", mSkin, "black"))
+				.align(Align.left)
+				.padBottom(Constants.CELL_PADDING);
+		
+		mSongInformationDialog.add(mArtistInput)
+				.align(Align.right)
+				.padBottom(Constants.CELL_PADDING)
+				.row();
+		
+		mSongInformationDialog.add(
+				new Label("BPM", mSkin, "black"))
+				.align(Align.left)
+				.padBottom(Constants.CELL_PADDING);
+		
+		mSongInformationDialog.add(mBpmInput)
+				.align(Align.right)
+				.padBottom(Constants.CELL_PADDING)
+				.row();
+		
+		mSongInformationDialog.add(
+				new Label("Song Offset", mSkin, "black"))
+				.align(Align.left)
+				.padBottom(Constants.CELL_PADDING);
+		
+		mSongInformationDialog.add(mOffsetInput)
+				.align(Align.right)
+				.padBottom(Constants.CELL_PADDING)
+				.row();
+				
+		Button goButton = new TextButton("Go", mSkin, "default");
+		
+		goButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
+				if (!informationInputsBlank()){
+					mSongInformationDialog.hide();					
+					mStage.setKeyboardFocus(mEditDropDownMenu);
+					String oldName = mData.getName();
+					mData.setName(mNameInput.getText());
+					mData.setArtist(mArtistInput.getText());
+					mData.setBpm(Float.parseFloat(mBpmInput.getText()));
+					mData.setOffset(Float.parseFloat(mOffsetInput.getText()));
+					mNameInput.setText("");
+					mArtistInput.setText("");
+					mBpmInput.setText("");
+					mOffsetInput.setText("");
+					mBuilder.updateSongData(mData);
+					Assets.instance.maps.updateMap(oldName, mData);
+					Options.instance.updateScores(oldName, mData.getName());
+					mStage.addListener(mListener);
+				}
+				return true;
+			}
+		});
+		
+		mSongInformationDialog.add(goButton).align(Align.center).colspan(2);
+		
+		mSongInformationDialog.setBackground(new NinePatchDrawable(Assets.instance.gui.greyPanelNinePatch));
+		mSongInformationDialog.debug();
+	}
+	
+	private boolean informationInputsBlank(){
+		return (mNameInput.getText().equals("") ||
+				mArtistInput.getText().equals("") ||
+				mBpmInput.getText().equals("") ||
+				mOffsetInput.getText().equals(""));
+	}
+	
 	private void buildStage(){
 		
 		mStage.addActor(mLeftButton);
@@ -437,6 +663,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mStage.addActor(mInformationTable);
 		mStage.addActor(mMenuBackground);
 		mStage.addActor(mEditDropDownMenu);
+		mStage.setKeyboardFocus(mEditDropDownMenu);
 
 		//Center origins	
 		mLeftButton.moveBy(-mRightButton.getWidth() / 2.f, -mRightButton.getHeight() / 2.f);
@@ -548,7 +775,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mShapeRenderer.begin(ShapeType.Line);
 		mShapeRenderer.setColor(Color.WHITE);
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		for (int i = 0; i < (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
+		for (int i = 0; i <= (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
 			mShapeRenderer.line(
 				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
 				mRightCamera.position.y + mTrackHeight / 2.f,
@@ -799,18 +1026,30 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void onLeftPress(){
 		
-		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		mRightCamera.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
-		mRightCamera.update();
+		int maxBeat = (int) (mData.getBpm() * (mData.getLength() / 60.f));
+		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1) return;
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		mCurrentBeatFraction = mCurrentBeatFraction.plus(1, mNoteQuantizations[mColorIndex]);
-		mCurrentBeat = mCurrentBeatFraction.toFloat();
-		if (mCurrentBeat == 0.f)
-			mCurrentSecond = 0.f;
-		else
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
-		for(OutlineNote note : mRightOutlines){
-			note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+	
+		if (mCurrentBeatFraction.toFloat() > maxBeat)
+			mCurrentBeatFraction = new Fraction(maxBeat, 1);
+		
+		if ((int)mCurrentBeatFraction.toFloat() == maxBeat){
+			for(OutlineNote note : mRightOutlines){
+				note.moveBy(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			}
+			mRightCamera.translate(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
 		}
+		else{			
+			for(OutlineNote note : mRightOutlines){
+				note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			}
+			mRightCamera.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+		}
+		
+		mCurrentBeat = mCurrentBeatFraction.toFloat();
+		mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
+		mRightCamera.update();
 		
 		//Extend active hold notes accordingly
 		for(HoldNote activeNote : mActiveHoldNotes){
@@ -968,5 +1207,21 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		}
 		mActiveHoldNotes.removeAll(mRightHoldNotes);		
+	}
+	
+	private void scrollToBeat(int beat){
+		
+		int maxMeasure = (int) (mData.getBpm() * (mData.getLength() / 60.f));
+		if (beat > maxMeasure) beat = maxMeasure;
+		if (beat < 0) beat = 0;
+		float distanceBeats = mCurrentBeat - beat;
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		mRightCamera.translate(distanceBeats * measureWidthPixels, 0.f);
+		mRightCamera.update();
+		for(OutlineNote note : mRightOutlines){
+			note.moveBy(distanceBeats * measureWidthPixels, 0);
+		}
+		mCurrentBeatFraction = new Fraction(beat, 1);
+		mCurrentBeat = beat;
 	}
 }

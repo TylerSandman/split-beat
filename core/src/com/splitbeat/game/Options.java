@@ -43,6 +43,17 @@ public class Options implements Disposable{
 		String jsonStr = json.toJson(mScores, HashMap.class, SongData.class);
 		mPrefs.putString("scores", jsonStr);
 	}
+	
+	public void updateScores(String name, String newName){
+		
+		SongScore scores = mScores.get(name);
+		mScores.remove(name);
+		mScores.put(newName, scores);
+		
+		Json json = new Json();	
+		String jsonStr = json.toJson(mScores, HashMap.class, SongData.class);
+		mPrefs.putString("scores", jsonStr);
+	}
 
 	@Override
 	public void dispose() {

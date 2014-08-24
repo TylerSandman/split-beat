@@ -37,6 +37,21 @@ public class SongData{
 		mHardRightMap = null;
 	}
 	
+	SongData(SongData other){
+		mName = other.getName();
+		mTitle = other.getTitle();
+		mArtist = other.getArtist();
+		mBpm = other.getBpm();
+		mLengthSeconds = other.getLength();
+		mOffset = other.getOffset();
+		mEasyLeftMap = other.getLeftMap(Difficulty.Easy);
+		mEasyRightMap = other.getRightMap(Difficulty.Easy);
+		mMediumLeftMap = other.getLeftMap(Difficulty.Medium);
+		mMediumRightMap = other.getRightMap(Difficulty.Medium);
+		mHardLeftMap = other.getLeftMap(Difficulty.Hard);
+		mHardRightMap = other.getRightMap(Difficulty.Hard);
+	}
+	
 	public void setEasyMaps(TiledMap left, TiledMap right){
 		mEasyLeftMap = left;
 		mEasyRightMap = right;
@@ -78,6 +93,7 @@ public class SongData{
 		}
 	}
 	
+	public void setName(String name) { mName = name; }
 	public String getName(){ return mName; }
 	public void setTitle(String title){ mTitle = title; }
 	public String getTitle(){ return mTitle; }
