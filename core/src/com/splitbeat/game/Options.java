@@ -15,6 +15,7 @@ public class Options implements Disposable{
 	private Preferences mPrefs;
 	private float mOffset;
 	private Map<String, SongScore> mScores;
+	private String mMapsPath;
 	
 	private Options(){}
 	
@@ -22,24 +23,26 @@ public class Options implements Disposable{
 		
 		mPrefs = Gdx.app.getPreferences("config.sb");
 		mOffset = mPrefs.getFloat("offset", 0.f);
-		String scoresStr = mPrefs.getString("scores", "");
-		if (scoresStr.equals("")){
-			resetScores();
-		}
-		else{
-			Json json = new Json();
-			mScores = json.fromJson(HashMap.class, SongData.class, scoresStr);
-		}
+		mMapsPath = mPrefs.getString("maps_path", Constants.DEFAULT_MAPS_PATH);
+		initScores();
 	}
-
-	private void resetScores(){
-		mScores = new HashMap<String, SongScore>();
+	
+	private void initScores(){
+				
+		Json json = new Json();
+		String scoresStr = mPrefs.getString("scores", "");
+		if (scoresStr.equals(""))
+			mScores = new HashMap<String, SongScore>();
+		else
+			mScores = json.fromJson(HashMap.class, SongData.class, scoresStr);
+		
+		//Initialize scores for new songs
 		for (Map.Entry<String, SongData> entry : Assets.instance.maps.dataMap.entrySet()){
 			
 			String name = entry.getKey();
-			mScores.put(name, new SongScore());		
+			if (mScores.get(name) == null)
+				mScores.put(name, new SongScore());		
 		}
-		Json json = new Json();	
 		String jsonStr = json.toJson(mScores, HashMap.class, SongData.class);
 		mPrefs.putString("scores", jsonStr);
 	}
@@ -66,6 +69,15 @@ public class Options implements Disposable{
 	}
 	
 	public float getOffset(){ return mOffset; }
+	
+	public void setMapsPath(String path){
+		mMapsPath = path;
+		mPrefs.putString("maps_path", path);
+	}
+	
+	public String getMapsPath(){
+		return mMapsPath;
+	}
 	
 	public SongScore getScores(String name){ return mScores.get(name); }
 

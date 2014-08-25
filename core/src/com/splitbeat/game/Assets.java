@@ -85,7 +85,7 @@ public class Assets implements Disposable, AssetErrorListener{
 	
 	private void loadMaps(){
 		mAssetManager.setLoader(TiledMap.class, new TmxMapLoader(new InternalFileHandleResolver()));
-		FileHandle[] songHandles = Gdx.files.local(Constants.LOCAL_MAPS_PATH).list();
+		FileHandle[] songHandles = Gdx.files.local(Constants.DEFAULT_MAPS_PATH).list();
 		for (FileHandle handle : songHandles){
 			if (handle.isDirectory()){
 				
@@ -96,12 +96,15 @@ public class Assets implements Disposable, AssetErrorListener{
 				FileHandle[] mp3Songs = handle.list(".mp3");
 				
 				//Load song
+				String loadPath = "";
 				if (oggSongs.length > 0)
-					mAssetManager.load(handle.path() + "/" + oggSongs[0].name(), Music.class);
+					loadPath = handle.path() + "/" + oggSongs[0].name();
 				else if (mp3Songs.length > 0)
-					mAssetManager.load(handle.path() + "/" + mp3Songs[0].name(), Music.class);
+					loadPath = handle.path() + "?" + mp3Songs[0].name();
+					
 				else
 					continue;
+				mAssetManager.load(loadPath, Music.class);
 				mAssetManager.finishLoading();
 				
 				FileHandle[] tiledMapHandles = handle.list(".tmx");
@@ -235,7 +238,7 @@ public class Assets implements Disposable, AssetErrorListener{
 			sync = am.get("music/sync.ogg", Music.class);
 			musicMap = new HashMap<String, Music>();
 			for (Map.Entry<String, SongData> entry : maps.dataMap.entrySet()){
-				String path = Constants.LOCAL_MAPS_PATH;
+				String path = Constants.DEFAULT_MAPS_PATH;
 				path += entry.getKey() + "/";
 				path += entry.getKey().toLowerCase().replace(" ", "_");
 				String mp3Path = path + ".mp3";
@@ -263,7 +266,7 @@ public class Assets implements Disposable, AssetErrorListener{
 			
 			dataMap = new HashMap<String, SongData>();
 			
-			FileHandle[] songHandles = Gdx.files.local(Constants.LOCAL_MAPS_PATH).list();
+			FileHandle[] songHandles = Gdx.files.local(Constants.DEFAULT_MAPS_PATH).list();
 			for (FileHandle handle : songHandles){
 				if (handle.isDirectory()){
 					SongData data = new SongData(handle.name());
@@ -323,7 +326,7 @@ public class Assets implements Disposable, AssetErrorListener{
 		public void reloadMap(String name, Difficulty difficulty){
 			
 			if (dataMap.get(name) == null || dataMap.get(name).getLeftMap(difficulty) == null) return;
-			String mapsPath = Constants.LOCAL_MAPS_PATH + name + "/";
+			String mapsPath = Constants.DEFAULT_MAPS_PATH + name + "/";
 			mapsPath += name.toLowerCase().replace(" ", "_");
 			mapsPath += "_";
 			mapsPath += difficulty.toString().toLowerCase();
@@ -357,24 +360,54 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		public void updateMap(String name, SongData updatedData){
 			
-			String mapsPath = Constants.LOCAL_MAPS_PATH + name;
+			String mapsPath = Constants.DEFAULT_MAPS_PATH + name;
 			FileHandle rootFolder = Gdx.files.local(mapsPath);
 			String newPath = mapsPath.replace(name, updatedData.getName());
 			String baseName = name.toLowerCase().replace(" ", "_");
 			String newBaseName = updatedData.getName().toLowerCase().replace(" ", "_");
-			
-			//Update folder name
-			rootFolder.moveTo(Gdx.files.local(newPath));
-			
-			FileHandle[] handles = Gdx.files.local(newPath).list();
-			
-			//Update map and music file names
-			for (FileHandle handle : handles){
-				handle.moveTo(
-					Gdx.files.local(handle.file().getPath().replace(
-							baseName,
-							newBaseName)));
+						
+			/*
+			if (!name.equals(updatedData.getName())){
+				
+				//Update folder name if the updated name is different
+				rootFolder.copyTo(Gdx.files.local(newPath));
+				rootFolder.deleteDirectory();
+				
+				FileHandle[] handles = Gdx.files.local(newPath).list();
+				
+				//Update map and music file names
+				for (FileHandle handle : handles){
+					handle.copyTo(
+						Gdx.files.local(handle.file().getPath().replace(
+								baseName,
+								newBaseName)));
+					handle.delete();
+				}
+				
+				//Update music in music map
+				String path = Constants.DEFAULT_MAPS_PATH;
+				path += name + "/";
+				path += name.toLowerCase().replace(" ", "_");
+				String mp3Path = path + ".mp3";
+				String oggPath = path + ".ogg";
+				if (mAssetManager.isLoaded(mp3Path)){
+					mAssetManager.unload(mp3Path);
+					String updatedPath = mp3Path.replace(name, updatedData.getName()).replace(baseName, newBaseName);
+					mAssetManager.load(updatedPath, Music.class);
+					mAssetManager.finishLoading();
+					music.musicMap.remove(name);
+					music.musicMap.put(updatedData.getName(), mAssetManager.get(updatedPath, Music.class));
+				}
+				else if (mAssetManager.isLoaded(oggPath)){
+					mAssetManager.unload(oggPath);
+					String updatedPath = oggPath.replace(name, updatedData.getName()).replace(baseName, newBaseName);
+					mAssetManager.load(updatedPath, Music.class);
+					mAssetManager.finishLoading();
+					music.musicMap.remove(name);
+					music.musicMap.put(updatedData.getName(), mAssetManager.get(updatedPath, Music.class));
+				}			
 			}
+			*/
 			
 			//Reload song data		
 			mapsPath += "/";

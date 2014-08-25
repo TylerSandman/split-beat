@@ -58,6 +58,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	private OutlineNote[] mRightOutlines;
 	private Color[] mNoteColors;
 	private int[] mNoteQuantizations;
+	private NoteClipboard mClipboard;
+	private NoteSelection mNoteSelection;
 	
 	private Stage mStage;
 	private InputListener mListener;
@@ -87,6 +89,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private TextField mArtistInput;
 	private TextField mBpmInput;
 	private TextField mOffsetInput;
+	private SongData mPendingChangeData;
 	
 	private Fraction mCurrentBeatFraction;
 	private float mCurrentBeat;
@@ -94,7 +97,6 @@ public class SongEditScreen extends AbstractGameScreen {
 	private int mColorIndex;
 	private float mTrackWidth;
 	private float mTrackHeight;
-	private boolean mPlacingHold;
 	
 	private ScoreManager mScoreManager;
 	private String[] mEditItems;
@@ -123,6 +125,7 @@ public class SongEditScreen extends AbstractGameScreen {
 				"Play all",
 				"Play from current beat",
 				"Jump to beat",
+				"Open/close selector",
 				"Cut",
 				"Copy",
 				"Paste",
@@ -149,7 +152,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mCurrentBeat = 0.f;
 		mColorIndex = 0;
 		mCurrentBeatFraction = new Fraction();
-		mPlacingHold = false;
+		mClipboard = new NoteClipboard();
+		mNoteSelection = new NoteSelection();
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -191,6 +195,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBuilder.create(mData, mDifficulty);
 		mLeftMap = mData.getLeftMap(mDifficulty);
 		mRightMap = mData.getRightMap(mDifficulty);
+		mPendingChangeData = new SongData(mData);
 		
 		buildMenu();
 		buildButtons();
@@ -258,8 +263,9 @@ public class SongEditScreen extends AbstractGameScreen {
 					onSlotPress(NoteSlot.BOTTOM_RIGHT);
 					break;
 				case(Keys.S):
-					if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT))
-						mBuilder.save();
+					if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
+						onSave();
+					}
 					break;
 				case(Keys.ENTER):
 					 //TODO SOMETHING
@@ -326,10 +332,10 @@ public class SongEditScreen extends AbstractGameScreen {
 		mEditDropDownMenu.addItemListener(0, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
-				mNameInput.setText(mData.getName());
-				mArtistInput.setText(mData.getArtist());
-				mBpmInput.setText(Float.toString(mData.getBpm()));
-				mOffsetInput.setText(Float.toString(mData.getOffset()));
+				mNameInput.setText(mPendingChangeData.getTitle());
+				mArtistInput.setText(mPendingChangeData.getArtist());
+				mBpmInput.setText(Float.toString(mPendingChangeData.getBpm()));
+				mOffsetInput.setText(Float.toString(mPendingChangeData.getOffset()));
 				mSongInformationDialog.show(mStage);
 				mStage.removeListener(mListener);
 				mStage.setKeyboardFocus(mNameInput);
@@ -348,17 +354,32 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		});
 		
-		//Save
-		mEditDropDownMenu.addItemListener(7, new InputListener(){
+		//Open/close selector
+		mEditDropDownMenu.addItemListener(4, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
-				mBuilder.save();
+				if (mNoteSelection.isOpen())
+					mNoteSelection.close(mCurrentBeat);			
+				else
+					mNoteSelection.open(mCurrentBeat);
+				
+				if (Math.abs(mNoteSelection.getEndBeat() - mNoteSelection.getStartBeat()) < 1.f / 64 &&
+					!mNoteSelection.isOpen())
+					mNoteSelection.clear();
+			}
+		});
+		
+		//Save
+		mEditDropDownMenu.addItemListener(8, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				onSave();
 			}
 
 		});
 		
 		//Exit
-		mEditDropDownMenu.addItemListener(8, new InputListener(){
+		mEditDropDownMenu.addItemListener(9, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				game.setScreen(new MenuScreen(game));
@@ -573,6 +594,23 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		});
 		
+		TextFieldListener infoListener = new TextFieldListener(){
+			
+			@Override
+			public void keyTyped(TextField textField, char c){
+				if (c == '\n' || c == 'r'){
+					if (!informationInputsBlank()){
+						onInformationEdit();
+					}
+				}
+			}
+		};
+		
+		mNameInput.setTextFieldListener(infoListener);
+		mArtistInput.setTextFieldListener(infoListener);
+		mBpmInput.setTextFieldListener(infoListener);
+		mOffsetInput.setTextFieldListener(infoListener);
+		
 		mSongInformationDialog.add(
 				new Label("Name", mSkin, "black"))
 				.align(Align.left)
@@ -621,21 +659,7 @@ public class SongEditScreen extends AbstractGameScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
 				if (!informationInputsBlank()){
-					mSongInformationDialog.hide();					
-					mStage.setKeyboardFocus(mEditDropDownMenu);
-					String oldName = mData.getName();
-					mData.setName(mNameInput.getText());
-					mData.setArtist(mArtistInput.getText());
-					mData.setBpm(Float.parseFloat(mBpmInput.getText()));
-					mData.setOffset(Float.parseFloat(mOffsetInput.getText()));
-					mNameInput.setText("");
-					mArtistInput.setText("");
-					mBpmInput.setText("");
-					mOffsetInput.setText("");
-					mBuilder.updateSongData(mData);
-					Assets.instance.maps.updateMap(oldName, mData);
-					Options.instance.updateScores(oldName, mData.getName());
-					mStage.addListener(mListener);
+					onInformationEdit();
 				}
 				return true;
 			}
@@ -646,6 +670,32 @@ public class SongEditScreen extends AbstractGameScreen {
 		mSongInformationDialog.setBackground(new NinePatchDrawable(Assets.instance.gui.greyPanelNinePatch));
 		mSongInformationDialog.debug();
 	}
+	
+	private void onSave(){
+		
+		AudioManager.instance.dispose();
+		mBuilder.updateSongData(mPendingChangeData);
+		mBuilder.save();				
+		Assets.instance.maps.updateMap(mData.getName(), mPendingChangeData);
+		Options.instance.updateScores(mData.getName(), mPendingChangeData.getName());
+		mData = new SongData(mPendingChangeData);
+	}
+	
+	private void onInformationEdit(){
+		
+		mSongInformationDialog.hide();					
+		mStage.setKeyboardFocus(mEditDropDownMenu);
+		mPendingChangeData.setTitle(mNameInput.getText());
+		mPendingChangeData.setArtist(mArtistInput.getText());
+		mPendingChangeData.setBpm(Float.parseFloat(mBpmInput.getText()));
+		mPendingChangeData.setOffset(Float.parseFloat(mOffsetInput.getText()));
+		mNameInput.setText("");
+		mArtistInput.setText("");
+		mBpmInput.setText("");
+		mOffsetInput.setText("");
+		mStage.addListener(mListener);
+	}
+	
 	
 	private boolean informationInputsBlank(){
 		return (mNameInput.getText().equals("") ||
@@ -766,12 +816,7 @@ public class SongEditScreen extends AbstractGameScreen {
 				(int)(Gdx.graphics.getHeight() / 2 + mRightCamera.position.y - mRightCamera.viewportHeight / 2), 
 				(int)mRightCamera.viewportWidth, 
 				(int)mRightCamera.viewportHeight);
-		mShapeRenderer.setProjectionMatrix(mRightCamera.combined);
-		
-		mShapeRenderer.begin(ShapeType.Filled);
-		mShapeRenderer.setColor(0, 1, 0, 1);
-		mShapeRenderer.end();
-		
+		mShapeRenderer.setProjectionMatrix(mRightCamera.combined);	
 		mShapeRenderer.begin(ShapeType.Line);
 		mShapeRenderer.setColor(Color.WHITE);
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
@@ -782,7 +827,6 @@ public class SongEditScreen extends AbstractGameScreen {
 				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
 				mRightCamera.position.y - mTrackHeight / 2.f);
 		}
-		
 		mShapeRenderer.end();
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		mStage.draw();	
@@ -802,8 +846,9 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBatch.begin();
 		renderOutlines();
 		renderNotes();
-		renderMeasures();
+		renderMeasures();		
 		mBatch.end();
+		renderSelection();
 	}
 	
 	private void renderOutlines(){
@@ -838,6 +883,23 @@ public class SongEditScreen extends AbstractGameScreen {
 					0, BitmapFont.HAlignment.CENTER);
 			renderX -= 4 * measureWidthPixels;
 		}
+	}
+	
+	private void renderSelection(){
+		
+		if (!mNoteSelection.isActive()) return;
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		mShapeRenderer.begin(ShapeType.Filled);
+		mShapeRenderer.setColor(1, 1, 1, 0.35f);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		float baseWidth = mRightOutlines[0].getBounds().width;
+		mShapeRenderer.rect(
+				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - mNoteSelection.getEndBeat() * measureWidthPixels - mRightOutlines[0].getBounds().width / 2.f,
+				mRightCamera.position.y - mTrackHeight / 2.f,
+				baseWidth + (mNoteSelection.getEndBeat() - mNoteSelection.getStartBeat()) * measureWidthPixels,
+				mTrackHeight);
+		mShapeRenderer.end();
+		Gdx.gl.glDisable(GL20.GL_BLEND);
 	}
 
 	@Override

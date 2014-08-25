@@ -16,6 +16,7 @@ public class TmxMapBuilder {
 	private XmlReader mXmlReader;
 	private Element mRoot;
 	private SongData mData;
+	private SongData mPendingChangeData;
 	boolean mLeft;
 	private String mSongPath;
 	private Difficulty mDifficulty;
@@ -27,6 +28,7 @@ public class TmxMapBuilder {
 	public void create(SongData data, Difficulty difficulty){
 		
 		mData = data;
+		mPendingChangeData = data;
 		mDifficulty = difficulty;
 		String difStr = "";
 		switch (difficulty){
@@ -42,7 +44,7 @@ public class TmxMapBuilder {
 		}
 		
 		mSongPath = 
-				Constants.LOCAL_MAPS_PATH + "/" + mData.getName() + "/" + 
+				Constants.DEFAULT_MAPS_PATH + "/" + mData.getName() + "/" + 
 				mData.getName().toLowerCase().replace(" ", "_");
 		mSongPath += "_" + difStr + (mLeft ? "_left" : "_right") + ".tmx";
 		mXmlReader = new XmlReader();		
@@ -80,6 +82,11 @@ public class TmxMapBuilder {
 		offsetEle.setAttribute("value", Float.toString(mData.getOffset()));
 		propsEle.addChild(offsetEle);
 		
+		Element titleEle = new Element("property", propsEle);
+		titleEle.setAttribute("name", "title");
+		titleEle.setAttribute("value", mData.getTitle());
+		propsEle.addChild(titleEle);
+		
 		Element artistEle = new Element("property", propsEle);
 		artistEle.setAttribute("name", "artist");
 		artistEle.setAttribute("value", mData.getArtist());
@@ -116,6 +123,13 @@ public class TmxMapBuilder {
 		try {
 			
 			Writer writer = Gdx.files.local(mSongPath).writer(false);
+			mSongPath = mSongPath
+					.replace(
+						mData.getName().toLowerCase().replace(" ", "_"),
+						mPendingChangeData.getName().toLowerCase().replace(" ", "_"))
+					.replace(
+						mData.getName(), mPendingChangeData.getName());
+			mData = new SongData(mPendingChangeData);
 			XmlWriter xmlWriter = new XmlWriter(writer);
 			xmlWriter
 			.element("map")
@@ -135,12 +149,16 @@ public class TmxMapBuilder {
 						.attribute("value", mRoot.getChildByName("properties").getChild(1).getAttribute("value"))
 					.pop()
 					.element("property")
-						.attribute("name", "artist")
+						.attribute("name", "title")
 						.attribute("value", mRoot.getChildByName("properties").getChild(2).getAttribute("value"))
 					.pop()
 					.element("property")
-						.attribute("name", "length")
+						.attribute("name", "artist")
 						.attribute("value", mRoot.getChildByName("properties").getChild(3).getAttribute("value"))
+					.pop()
+					.element("property")
+						.attribute("name", "length")
+						.attribute("value", mRoot.getChildByName("properties").getChild(4).getAttribute("value"))
 					.pop()					
 				.pop();
 				//Notes
@@ -217,26 +235,27 @@ public class TmxMapBuilder {
 	
 	public void updateSongData(SongData data){
 		
-		mSongPath.replace(
-				mData.getName().toLowerCase().replace(" ", "_"),
-				data.getName().toLowerCase().replace(" ", "_"));
-		mData = data;	
+		mPendingChangeData = new SongData(data);	
 		
-		int mapWidth = (int) Math.ceil(mData.getBpm() * mData.getLength() / 60.f * Constants.MEASURE_WIDTH_NOTES);	
+		int mapWidth = (int) Math.ceil(mPendingChangeData.getBpm() * mPendingChangeData.getLength() / 60.f * Constants.MEASURE_WIDTH_NOTES);	
 		mRoot.setAttribute("width", Integer.toString(mapWidth));
 		Element propertiesEle = mRoot.getChild(0);
 		
 		Element bpmEle = propertiesEle.getChild(0);
 		bpmEle.setAttribute("name", "bpm");
-		bpmEle.setAttribute("value", Float.toString(mData.getBpm()));
+		bpmEle.setAttribute("value", Float.toString(mPendingChangeData.getBpm()));
 		
 		Element offsetEle = propertiesEle.getChild(1);
 		offsetEle.setAttribute("name", "offset");
-		offsetEle.setAttribute("value", Float.toString(mData.getOffset()));
+		offsetEle.setAttribute("value", Float.toString(mPendingChangeData.getOffset()));
 		
-		Element artistEle = propertiesEle.getChild(2);
+		Element titleEle = propertiesEle.getChild(2);
+		titleEle.setAttribute("name", "title");
+		titleEle.setAttribute("value", mPendingChangeData.getTitle());
+		
+		Element artistEle = propertiesEle.getChild(3);
 		artistEle.setAttribute("name", "artist");
-		artistEle.setAttribute("value", mData.getArtist());		
+		artistEle.setAttribute("value", mPendingChangeData.getArtist());		
 	}
 	
 	public void addNote(Note note){

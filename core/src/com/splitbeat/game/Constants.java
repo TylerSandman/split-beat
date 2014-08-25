@@ -125,7 +125,7 @@ public class Constants {
 	//File paths
 	public static final String SYNC_LEFT_MAP = "maps/sync_left.tmx";
 	public static final String SYNC_RIGHT_MAP = "maps/sync_right.tmx";
-	public static final String LOCAL_MAPS_PATH = "../android/assets/maps/";
+	public static final String DEFAULT_MAPS_PATH = "./Songs/";
 	
 	//Tiled spritesheet GIDs
 	public static final int RED_ID = 8;

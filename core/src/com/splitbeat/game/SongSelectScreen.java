@@ -9,6 +9,7 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -123,6 +124,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 					dehighlightSong(mSelectedIndex);
 				float rowPos = mSongsTable.getHeight() - (mSongsPane.getHeight() - y + mSongsPane.getScrollY());
 				int row = mSongsTable.getRow(rowPos);
+				if (row >= mSongDataArr.size()) return true;
 				mSelectedIndex = row;
 				highlightSong(row);	
 				return true;
@@ -243,7 +245,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 			Table scrollTable = new Table();
 			Stack stack = new Stack();
 			
-			Label nameLabel = new Label(data.getName(), mSkin, "black");
+			Label nameLabel = new Label(data.getTitle(), mSkin, "black");
 			nameLabel.setAlignment(Align.center);
 			Label artistLabel = new Label(data.getArtist(), mSkin, "black");
 			artistLabel.setAlignment(Align.center);
@@ -403,7 +405,7 @@ public class SongSelectScreen extends AbstractGameScreen {
 		mLayoutTable.add(mSelectLabel).padBottom(Constants.CELL_PADDING).row();
 		mLayoutTable.add(mHeadersTable).fillX().expandX().row();
 		//mHeadersTable.debug();
-		mLayoutTable.add(mSongsPane).fill().expand().row();
+		mLayoutTable.add(mSongsPane).fillX().expandX().row();
 		mLayoutTable.add(mDifficultyTable).fillX().expandX().pad(Constants.CELL_PADDING).row();
 		//mDifficultyTable.debug();
 		mLayoutTable.add(mPlayButton).expandX().pad(Constants.CELL_PADDING);

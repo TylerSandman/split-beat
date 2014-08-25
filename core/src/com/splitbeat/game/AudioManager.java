@@ -62,4 +62,12 @@ public class AudioManager {
 			return false;
 		return mPlayingMusic.isPlaying();
 	}
+	
+	public void dispose(){
+		
+		if (mPlayingMusic != null){
+			mPlayingMusic.dispose();
+			mPlayingMusic = null;
+		}
+	}
 }
