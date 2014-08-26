@@ -21,6 +21,10 @@ public class Note extends AbstractGameObject{
 	private boolean mLeftTrack;
 	private Timing mTiming;
 	
+	Note(Note other, ScoreManager scoreManager){
+		this(other.beat, other.slot, other.type, scoreManager);
+	}
+	
 	//Slot 0 is top, slot 1 is middle, slot 2 is bottom
 	Note(float beat, NoteSlot slot, NoteType type, ScoreManager scoreManager){
 		super(null);
@@ -160,5 +164,29 @@ public class Note extends AbstractGameObject{
 	
 	public int getMaxScore(){
 		return Constants.FLAWLESS_POINTS;
+	}
+	
+	public static NoteType beatToType(float beat){
+		
+		float remainder;
+		remainder = beat % 1.f;
+		if (remainder < 1.f / 32 || Math.abs(remainder - 1.f) < 1.f / 32) return NoteType.QUARTER;
+		
+		remainder = beat % 0.5f;
+		if (remainder < 1.f / 32 || Math.abs(remainder - 0.5f) < 1.f / 32) return NoteType.EIGHTH;
+		
+		remainder = beat % 0.333f;
+		if (remainder < 1.f / 32 || Math.abs(remainder - 0.333f) < 1.f / 32) return NoteType.TWELVTH;
+		
+		remainder = beat % 0.25f;
+		if (remainder < 1.f / 32 || Math.abs(remainder - 0.25f) < 1.f / 32) return NoteType.SIXTEENTH;
+		
+		remainder = beat % 0.1667f;
+		if (remainder< 1.f / 32 || Math.abs(remainder - 0.1667f) < 1.f / 32) return NoteType.TWENTY_FOURTH;
+		
+		remainder = beat % 0.125f;
+		if (remainder < 1.f / 32 || Math.abs(remainder - 0.125f) < 1.f / 32) return NoteType.THIRTY_SECOND;
+		
+		return NoteType.QUARTER;
 	}
 }

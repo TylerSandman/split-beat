@@ -369,6 +369,30 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		});
 		
+		//Cut
+		mEditDropDownMenu.addItemListener(5, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				cutNotes();
+			}
+		});
+		
+		//Copy
+		mEditDropDownMenu.addItemListener(6, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				copyNotes();
+			}
+		});
+		
+		//Paste
+		mEditDropDownMenu.addItemListener(7, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				pasteNotes();
+			}
+		});
+		
 		//Save
 		mEditDropDownMenu.addItemListener(8, new InputListener(){
 			
@@ -931,6 +955,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void placeNote(float beat, NoteSlot slot, NoteType type){
 		
+		removeNote(slot, (beat - mCurrentBeat));
 		Note note = new Note(beat, slot, type, mScoreManager);
 		
 		//Center note relative to track and up/down buttons
@@ -964,11 +989,12 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Move to appropriate beat
 		float measureWidthPixels = note.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		note.moveBy(-measureWidthPixels * beat, 0.f);
+		note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
 		
 		mRightRegularNotes.add(note);
 		mBuilder.addNote(note);
 	}
+
 	
 	private void placeNewNote(NoteSlot slot, NoteType type){
 		
@@ -1009,7 +1035,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void placeHoldNote(float beat, float duration, NoteSlot slot, NoteType type){
 		
-		removeNote(slot, mCurrentBeat);
+		removeNote(slot, (beat - mCurrentBeat));
 		HoldNote note = new HoldNote(beat, slot, type, duration, mData.getBpm(), mScoreManager);
 		
 		//Center note relative to track and up/down buttons
@@ -1043,7 +1069,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Move to appropriate beat
 		float measureWidthPixels = note.getHitBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		note.moveBy(-measureWidthPixels * beat, 0.f);
+		note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
 		
 		mRightHoldNotes.add(note);
 		mBuilder.addHold(note);
@@ -1285,5 +1311,64 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		mCurrentBeatFraction = new Fraction(beat, 1);
 		mCurrentBeat = beat;
+	}
+	
+	private void cutNotes(){
+		
+		ArrayList<Note> notes = new ArrayList<Note>();
+		ArrayList<HoldNote> holds = new ArrayList<HoldNote>();
+		if (!mNoteSelection.isOpen() && mNoteSelection.isActive()){
+			
+			for (Note note : mRightRegularNotes){
+				if (note.beat >= mNoteSelection.getStartBeat() && note.beat <= mNoteSelection.getEndBeat()){
+					notes.add(new Note(note, new ScoreManager()));
+					note.flagForRemoval();
+				}
+			}
+			
+			for (HoldNote hold : mRightHoldNotes){
+				if (hold.beat >= mNoteSelection.getStartBeat() && hold.beat <= mNoteSelection.getEndBeat()){
+					holds.add(new HoldNote(hold, mData.getBpm(), new ScoreManager()));
+					hold.flagForRemoval();
+				}
+			}			
+		}
+		mClipboard.copy(notes,  holds);
+	}
+	
+	private void copyNotes(){
+		ArrayList<Note> notes = new ArrayList<Note>();
+		ArrayList<HoldNote> holds = new ArrayList<HoldNote>();
+		if (!mNoteSelection.isOpen() && mNoteSelection.isActive()){
+			
+			for (Note note : mRightRegularNotes){
+				if (note.beat >= mNoteSelection.getStartBeat() && note.beat <= mNoteSelection.getEndBeat())
+					notes.add(new Note(note, new ScoreManager()));
+			}
+			
+			for (HoldNote hold : mRightHoldNotes){
+				if (hold.beat >= mNoteSelection.getStartBeat() && hold.beat <= mNoteSelection.getEndBeat())
+					holds.add(new HoldNote(hold, mData.getBpm(), new ScoreManager()));
+			}			
+		}
+		mClipboard.copy(notes,  holds);
+	}
+	
+	private void pasteNotes(){
+		
+		if (mClipboard.isEmpty()) return;
+		float beatDifference = mClipboard.getFirstBeat() - mCurrentBeat;
+		ArrayList<Note> notes = mClipboard.getNotes();
+		ArrayList<HoldNote> holds = mClipboard.getHoldNotes();
+		
+		for (Note note : notes){
+			float newBeat = note.beat - beatDifference;
+			placeNote(newBeat, note.slot, Note.beatToType(newBeat));
+		}
+		for (HoldNote hold : holds){
+			float newBeat = hold.beat - beatDifference;
+			placeHoldNote(newBeat, hold.getHoldDuration(), hold.slot, Note.beatToType(newBeat));
+	
+		}
 	}
 }

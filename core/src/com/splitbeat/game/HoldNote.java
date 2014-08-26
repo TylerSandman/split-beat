@@ -30,6 +30,10 @@ public class HoldNote extends Note {
 	private boolean mLeftTrack;
 	private boolean mSuccessfulRelease;
 	
+	HoldNote(HoldNote other, float bpm, ScoreManager scoreManager){
+		this(other.beat, other.slot, other.type, other.getHoldDuration(), bpm, scoreManager);
+	}
+	
 	HoldNote(float beat, NoteSlot slot, NoteType type, float holdDurationBeats, float bpm, ScoreManager scoreManager) {
 		
 		super(beat, slot, type, scoreManager);
