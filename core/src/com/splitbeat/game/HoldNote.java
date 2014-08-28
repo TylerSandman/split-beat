@@ -34,9 +34,9 @@ public class HoldNote extends Note {
 		this(other.beat, other.slot, other.type, other.getHoldDuration(), bpm, scoreManager);
 	}
 	
-	HoldNote(float beat, NoteSlot slot, NoteType type, float holdDurationBeats, float bpm, ScoreManager scoreManager) {
+	HoldNote(float beat, NoteSlot slot, NoteType type, float holdDurationBeats, float bpm, ScoreManager scoreManager, boolean leftTrack){
 		
-		super(beat, slot, type, scoreManager);
+		super(beat, slot, type, scoreManager, leftTrack);
 		mHoldDurationBeats = holdDurationBeats;
 		mBPM = bpm;
 		float secondsPerBeat = 1.f / (mBPM / 60.f);
@@ -45,7 +45,7 @@ public class HoldNote extends Note {
 		mNoteSpeed = measureWidthPixels * mBPM / 60.f;
 		mHoldDurationSeconds += mSprite.getWidth() / 2.f / mNoteSpeed;
 		mHolding = false;
-		mLeftTrack = false;
+		mLeftTrack = leftTrack;
 		mSuccessfulRelease = false;
 		mHoldBackground = new TextureRegion(Assets.instance.button.holdBackground);
 		mHoldOverlay = new TextureRegion(Assets.instance.button.holdOverlay);
@@ -79,7 +79,7 @@ public class HoldNote extends Note {
 		
 		if (mLeftTrack){
 			mDrawPosition = new Vector2(
-					mSprite.getX(), mSprite.getY());	
+					mSprite.getX() + mSprite.getWidth() / 2.f, mSprite.getY());	
 			mHoldBackground.flip(true, false);
 			mHoldOverlay.flip(true, false);
 		}
@@ -122,6 +122,10 @@ public class HoldNote extends Note {
 			mHoldTintColor = Color.RED;
 			break;
 		}
+	}
+	
+	HoldNote(float beat, NoteSlot slot, NoteType type, float holdDurationBeats, float bpm, ScoreManager scoreManager) {
+		this(beat, slot, type, holdDurationBeats, bpm, scoreManager, false);
 	}
 	
 	@Override
@@ -246,7 +250,7 @@ public class HoldNote extends Note {
 
 		if (mLeftTrack){
 			mDrawPosition = new Vector2(
-					mSprite.getX(), mSprite.getY());	
+					mSprite.getX() + mSprite.getWidth() / 2.f, mSprite.getY());	
 		}
 		else{
 			mDrawPosition = new Vector2(

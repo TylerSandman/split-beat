@@ -36,6 +36,8 @@ public class World implements Disposable{
 	protected TiledMap mLeftMap;
 	protected TiledMap mRightMap;
 	protected boolean mPlaying;
+	protected String mSongName;
+	protected Difficulty mDifficulty;
 	
 	private PlayerController mController;
 	private ScoreManager mScoreManager;
@@ -44,8 +46,7 @@ public class World implements Disposable{
 	private float mLeftNoteSpeed;	
 	private float mRightNoteSpeed;
 	private float mOffset;
-	private String mSongName;
-	private Difficulty mDifficulty;
+	
 	
 	
 	World(Game game, String songName, Difficulty difficulty){
@@ -226,8 +227,7 @@ public class World implements Disposable{
 		}
 		else{
 			updateSong(deltaTime);
-		}
-		
+		}	
 	}
 	
 	protected void updateSong(float deltaTime){
@@ -249,7 +249,7 @@ public class World implements Disposable{
 	}
 	
 	protected void onSongEnd(){
-		backToSongSelect();
+		back();
 	}
 	
 	public void handleInput(float deltaTime){
@@ -603,7 +603,9 @@ public class World implements Disposable{
 		mGame.setScreen((new MenuScreen(mGame)));
 	}
 	
-	public void backToSongSelect(){
+	public void back(){
 		mGame.setScreen(new SongSelectScreen(mGame));
 	}
+	
+	public PlayerController getController(){ return mController; }
 }

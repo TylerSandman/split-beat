@@ -226,7 +226,7 @@ public class TmxMapBuilder {
 				.pop()
 			.pop();
 			xmlWriter.close();
-			Assets.instance.maps.reloadMap(mData.getName(), mDifficulty);
+			Assets.instance.maps.updateMap(mData.getName(), mDifficulty, mData);
 			
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -25,8 +25,11 @@ public class Note extends AbstractGameObject{
 		this(other.beat, other.slot, other.type, scoreManager);
 	}
 	
-	//Slot 0 is top, slot 1 is middle, slot 2 is bottom
 	Note(float beat, NoteSlot slot, NoteType type, ScoreManager scoreManager){
+		this(beat, slot, type, scoreManager, false);
+	}
+
+	Note(float beat, NoteSlot slot, NoteType type, ScoreManager scoreManager, boolean leftTrack){
 		super(null);
 		this.beat = beat;
 		this.slot = slot;
@@ -34,7 +37,7 @@ public class Note extends AbstractGameObject{
 		mScoreManager = scoreManager;
 		mTiming = Timing.NONE;
 		pressed = false;
-		mLeftTrack = false;	
+		mLeftTrack = leftTrack;	
 		
 		switch(type){
 		case QUARTER:

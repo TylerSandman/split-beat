@@ -323,7 +323,7 @@ public class Assets implements Disposable, AssetErrorListener{
 			}
 		}
 		
-		public void reloadMap(String name, Difficulty difficulty){
+		public void updateMap(String name, Difficulty difficulty, SongData updatedData){
 			
 			if (dataMap.get(name) == null || dataMap.get(name).getLeftMap(difficulty) == null) return;
 			String mapsPath = Constants.DEFAULT_MAPS_PATH + name + "/";
@@ -355,81 +355,12 @@ public class Assets implements Disposable, AssetErrorListener{
 						mAssetManager.get(rightPath, TiledMap.class));
 				break;
 			}
-			dataMap.put(name, newData);
-		}
-		
-		public void updateMap(String name, SongData updatedData){
-			
-			String mapsPath = Constants.DEFAULT_MAPS_PATH + name;
-			FileHandle rootFolder = Gdx.files.local(mapsPath);
-			String newPath = mapsPath.replace(name, updatedData.getName());
-			String baseName = name.toLowerCase().replace(" ", "_");
-			String newBaseName = updatedData.getName().toLowerCase().replace(" ", "_");
-						
-			/*
-			if (!name.equals(updatedData.getName())){
-				
-				//Update folder name if the updated name is different
-				rootFolder.copyTo(Gdx.files.local(newPath));
-				rootFolder.deleteDirectory();
-				
-				FileHandle[] handles = Gdx.files.local(newPath).list();
-				
-				//Update map and music file names
-				for (FileHandle handle : handles){
-					handle.copyTo(
-						Gdx.files.local(handle.file().getPath().replace(
-								baseName,
-								newBaseName)));
-					handle.delete();
-				}
-				
-				//Update music in music map
-				String path = Constants.DEFAULT_MAPS_PATH;
-				path += name + "/";
-				path += name.toLowerCase().replace(" ", "_");
-				String mp3Path = path + ".mp3";
-				String oggPath = path + ".ogg";
-				if (mAssetManager.isLoaded(mp3Path)){
-					mAssetManager.unload(mp3Path);
-					String updatedPath = mp3Path.replace(name, updatedData.getName()).replace(baseName, newBaseName);
-					mAssetManager.load(updatedPath, Music.class);
-					mAssetManager.finishLoading();
-					music.musicMap.remove(name);
-					music.musicMap.put(updatedData.getName(), mAssetManager.get(updatedPath, Music.class));
-				}
-				else if (mAssetManager.isLoaded(oggPath)){
-					mAssetManager.unload(oggPath);
-					String updatedPath = oggPath.replace(name, updatedData.getName()).replace(baseName, newBaseName);
-					mAssetManager.load(updatedPath, Music.class);
-					mAssetManager.finishLoading();
-					music.musicMap.remove(name);
-					music.musicMap.put(updatedData.getName(), mAssetManager.get(updatedPath, Music.class));
-				}			
-			}
-			*/
-			
-			//Reload song data		
-			mapsPath += "/";
-			mapsPath += name.toLowerCase().replace(" ", "_");
-			mapsPath += "_";
-			String leftPath = "";
-			String rightPath = "";
-			for (Difficulty dif : Difficulty.values()){
-				leftPath = mapsPath + dif.toString().toLowerCase() + "_left.tmx";
-				rightPath = mapsPath + dif.toString().toLowerCase() + "_right.tmx";
-				if (mAssetManager.isLoaded(leftPath) && mAssetManager.isLoaded(rightPath)){
-					mAssetManager.unload(leftPath);
-					mAssetManager.unload(rightPath);
-					mAssetManager.load(
-							leftPath.replace(baseName, newBaseName).replace(name, updatedData.getName()), TiledMap.class);
-					mAssetManager.load(
-							rightPath.replace(baseName, newBaseName).replace(name, updatedData.getName()), TiledMap.class);
-				}
-			}
-			mAssetManager.finishLoading();
+			newData.setArtist(updatedData.getArtist());
+			newData.setTitle(updatedData.getTitle());
+			newData.setBpm(updatedData.getBpm());
+			newData.setOffset(updatedData.getOffset());
 			dataMap.remove(name);
-			dataMap.put(updatedData.getName(), updatedData);						
+			dataMap.put(name, newData);
 		}
 	}
 	

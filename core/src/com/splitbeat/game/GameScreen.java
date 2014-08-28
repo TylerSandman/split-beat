@@ -8,8 +8,8 @@ public class GameScreen extends AbstractGameScreen {
 	
 	protected boolean mPaused;
 	protected World mWorld;
-	private String mSongName;
-	private Difficulty mDifficulty;
+	protected String mSongName;
+	protected Difficulty mDifficulty;
 	
 	GameScreen(Game game, String songName, Difficulty difficulty){
 		super(game);

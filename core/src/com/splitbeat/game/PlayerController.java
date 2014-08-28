@@ -46,7 +46,7 @@ public class PlayerController extends InputAdapter {
 			mWorld.pressSlot(NoteSlot.BOTTOM_LEFT);
 			break;
 		case(Input.Keys.R):
-			mWorld.backToSongSelect();
+			mWorld.back();
 		}
 		return false;
 	}

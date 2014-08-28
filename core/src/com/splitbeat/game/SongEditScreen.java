@@ -37,7 +37,8 @@ import com.splitbeat.game.Constants.NoteSlot;
 import com.splitbeat.game.Constants.NoteType;
 public class SongEditScreen extends AbstractGameScreen {
 	
-	private TmxMapBuilder mBuilder;
+	private TmxMapBuilder mLeftBuilder;
+	private TmxMapBuilder mRightBuilder;
 	private OrthographicCamera mLeftCamera;
 	private OrthographicCamera mRightCamera;
 	private OrthographicCamera mHUDCamera;
@@ -60,6 +61,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private int[] mNoteQuantizations;
 	private NoteClipboard mClipboard;
 	private NoteSelection mNoteSelection;
+	private boolean mLeft;
 	
 	private Stage mStage;
 	private InputListener mListener;
@@ -109,7 +111,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void init(){
 		
-		mBuilder = new TmxMapBuilder(false);
+		mLeftBuilder = new TmxMapBuilder(true);
+		mRightBuilder = new TmxMapBuilder(false);
 		mShapeRenderer = new ShapeRenderer();
 		mBatch = new SpriteBatch();
 		mLeftMarkers = new ArrayList<BPMMarker>();
@@ -121,9 +124,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mActiveHoldNotes = new ArrayList<HoldNote>();
 		mScoreManager = new ScoreManager();
 		mEditItems = new String[]{
+				"Switch tracks",
 				"Steps information",
-				"Play all",
-				"Play from current beat",
 				"Jump to beat",
 				"Open/close selector",
 				"Cut",
@@ -154,6 +156,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mCurrentBeatFraction = new Fraction();
 		mClipboard = new NoteClipboard();
 		mNoteSelection = new NoteSelection();
+		mLeft = false;
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -192,7 +195,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightCamera.update();
 		
 		mData = Assets.instance.maps.dataMap.get(mName);
-		mBuilder.create(mData, mDifficulty);
+		mLeftBuilder.create(mData, mDifficulty);
+		mRightBuilder.create(mData, mDifficulty);
 		mLeftMap = mData.getLeftMap(mDifficulty);
 		mRightMap = mData.getRightMap(mDifficulty);
 		mPendingChangeData = new SongData(mData);
@@ -204,8 +208,42 @@ public class SongEditScreen extends AbstractGameScreen {
 		buildStage();
 		
 		//Parse tracks
-		MapLayer noteLayer =  mRightMap.getLayers().get(0);
+		MapLayer noteLayer =  mLeftMap.getLayers().get(0);
 		MapObjects notes = noteLayer.getObjects();
+		
+		//Regular Notes
+		mLeft = true;
+		for(MapObject note : notes){
+			Note toAdd = NoteFactory.createNote(note, mLeftMap, mScoreManager, true);
+			placeNote(toAdd.beat, toAdd.slot, toAdd.type);
+		}
+		
+		noteLayer = mLeftMap.getLayers().get(1);
+		notes = noteLayer.getObjects();
+		
+		//Hold Notes
+		for(MapObject note : notes){
+			HoldNote toAdd = (HoldNote) NoteFactory.createNote(note, mRightMap, mScoreManager, true);
+			placeHoldNote(toAdd.beat, toAdd.getHoldDuration(), toAdd.slot, toAdd.type);
+		}
+		
+		//BPM markers	
+		if (mLeftMap.getLayers().getCount() > 2){
+			
+			noteLayer = mLeftMap.getLayers().get(2);
+			notes = noteLayer.getObjects();
+			
+			MapLayer markerLayer = mLeftMap.getLayers().get(2);
+			MapObjects markers = markerLayer.getObjects();
+			
+			for(MapObject marker : markers){
+				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap, true));
+			}
+		}
+		
+		mLeft = false;
+		noteLayer =  mRightMap.getLayers().get(0);
+		notes = noteLayer.getObjects();
 		
 		//Regular Notes
 		for(MapObject note : notes){
@@ -253,19 +291,29 @@ public class SongEditScreen extends AbstractGameScreen {
 				case(Keys.RIGHT):
 					onRightPress();
 					break;
+				case(Keys.Q):
+					if (!mLeft) break;
+					onSlotPress(NoteSlot.TOP_LEFT);
+					break;
+				case(Keys.S):
+					if (!mLeft) break;
+					onSlotPress(NoteSlot.MIDDLE_LEFT);
+					break;
+				case(Keys.X):
+					if (!mLeft) break;
+					onSlotPress(NoteSlot.BOTTOM_LEFT);
+					break;
 				case(Keys.O):
+					if (mLeft) break;
 					onSlotPress(NoteSlot.TOP_RIGHT);
 					break;
 				case(Keys.K):
+					if (mLeft) break;
 					onSlotPress(NoteSlot.MIDDLE_RIGHT);
 					break;
 				case(Keys.M):
+					if (mLeft) break;
 					onSlotPress(NoteSlot.BOTTOM_RIGHT);
-					break;
-				case(Keys.S):
-					if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) || Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
-						onSave();
-					}
 					break;
 				case(Keys.ENTER):
 					 //TODO SOMETHING
@@ -280,13 +328,28 @@ public class SongEditScreen extends AbstractGameScreen {
 			@Override
 			public boolean keyUp(InputEvent event, int keycode){
 				switch(keycode){
+				case(Keys.Q):
+					if (!mLeft) break;
+					onSlotRelease(NoteSlot.TOP_LEFT);
+					break;
+				case(Keys.S):
+					if (!mLeft) break;
+					onSlotRelease(NoteSlot.MIDDLE_LEFT);
+					break;
+				case(Keys.X):
+					if (!mLeft) break;
+					onSlotRelease(NoteSlot.BOTTOM_LEFT);
+					break;
 				case(Keys.O):
+					if (mLeft) break;
 					onSlotRelease(NoteSlot.TOP_RIGHT);
 					break;
 				case(Keys.K):
+					if (mLeft) break;
 					onSlotRelease(NoteSlot.MIDDLE_RIGHT);
 					break;
 				case(Keys.M):
+					if (mLeft) break;
 					onSlotRelease(NoteSlot.BOTTOM_RIGHT);
 					break;
 				}
@@ -295,13 +358,26 @@ public class SongEditScreen extends AbstractGameScreen {
 		};
 		
 		mStage.addListener(mListener);		
-		mRightOutlines = new OutlineNote[]{
+		mLeftOutlines = new OutlineNote[]{
 				new OutlineNote(NoteSlot.TOP_LEFT, mScoreManager),
 				new OutlineNote(NoteSlot.MIDDLE_LEFT, mScoreManager),
 				new OutlineNote(NoteSlot.BOTTOM_LEFT, mScoreManager)
 		};
+		mRightOutlines = new OutlineNote[]{
+				new OutlineNote(NoteSlot.TOP_RIGHT, mScoreManager),
+				new OutlineNote(NoteSlot.MIDDLE_RIGHT, mScoreManager),
+				new OutlineNote(NoteSlot.BOTTOM_RIGHT, mScoreManager)
+		};
 		
 		//Center outlines relative to track and up/down buttons
+		
+		for(OutlineNote note : mLeftOutlines){
+			
+			note.setPosition(
+					-mLeftCamera.position.x - note.getBounds().width / 2.f,
+					mLeftCamera.position.y - note.getBounds().height / 2.f);
+		}
+		
 		for(OutlineNote note : mRightOutlines){
 			note.setPosition(
 					mRightCamera.position.x - note.getBounds().width / 2.f,
@@ -310,13 +386,19 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//Move to appropriate slots
 		float moveIncrement = 2 * mRightOutlines[0].getBounds().height - mRightOutlines[0].getBounds().height / 2;
+		mLeftOutlines[0].moveBy(0, -moveIncrement);
+		mLeftOutlines[2].moveBy(0, moveIncrement);
 		mRightOutlines[0].moveBy(0, -moveIncrement);
 		mRightOutlines[2].moveBy(0, moveIncrement);
 		
-		//Move to starting position (beat 0)
+		
+		//Move to starting position (beat 0)		
+		for(OutlineNote note : mLeftOutlines){
+			note.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		}
 		for(OutlineNote note : mRightOutlines){
 			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
-		}
+		}		
 	}
 	
 	private void buildMenu(){
@@ -328,8 +410,17 @@ public class SongEditScreen extends AbstractGameScreen {
 		mEditDropDownMenu = new DropDownMenu<String>(mSkin, "default", "Edit");
 		mEditDropDownMenu.setItems(mEditItems);
 		
-		//Edit song information
+		//Switch tracks
 		mEditDropDownMenu.addItemListener(0, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				mLeft = !mLeft;
+			}
+
+		});
+		
+		//Edit song information
+		mEditDropDownMenu.addItemListener(1, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				mNameInput.setText(mPendingChangeData.getTitle());
@@ -343,8 +434,9 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 
 		});
+		
 		//Jump to Beat
-		mEditDropDownMenu.addItemListener(3, new InputListener(){
+		mEditDropDownMenu.addItemListener(2, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				mBeatJumpDialog.show(mStage);
@@ -355,7 +447,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Open/close selector
-		mEditDropDownMenu.addItemListener(4, new InputListener(){
+		mEditDropDownMenu.addItemListener(3, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				if (mNoteSelection.isOpen())
@@ -370,7 +462,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Cut
-		mEditDropDownMenu.addItemListener(5, new InputListener(){
+		mEditDropDownMenu.addItemListener(4, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				cutNotes();
@@ -378,7 +470,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Copy
-		mEditDropDownMenu.addItemListener(6, new InputListener(){
+		mEditDropDownMenu.addItemListener(5, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				copyNotes();
@@ -386,7 +478,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Paste
-		mEditDropDownMenu.addItemListener(7, new InputListener(){
+		mEditDropDownMenu.addItemListener(6, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				pasteNotes();
@@ -394,7 +486,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Save
-		mEditDropDownMenu.addItemListener(8, new InputListener(){
+		mEditDropDownMenu.addItemListener(7, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				onSave();
@@ -403,7 +495,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Exit
-		mEditDropDownMenu.addItemListener(9, new InputListener(){
+		mEditDropDownMenu.addItemListener(8, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				game.setScreen(new MenuScreen(game));
@@ -698,9 +790,10 @@ public class SongEditScreen extends AbstractGameScreen {
 	private void onSave(){
 		
 		AudioManager.instance.dispose();
-		mBuilder.updateSongData(mPendingChangeData);
-		mBuilder.save();				
-		Assets.instance.maps.updateMap(mData.getName(), mPendingChangeData);
+		mLeftBuilder.updateSongData(mPendingChangeData);
+		mRightBuilder.updateSongData(mPendingChangeData);
+		mLeftBuilder.save();	
+		mRightBuilder.save();
 		Options.instance.updateScores(mData.getName(), mPendingChangeData.getName());
 		mData = new SongData(mPendingChangeData);
 	}
@@ -811,16 +904,32 @@ public class SongEditScreen extends AbstractGameScreen {
 	public void cleanupNotes(){
 		
 		ArrayList<Note> toRemove = new ArrayList<Note>();
+		for(Note note : mLeftRegularNotes){
+			if (note.isFlaggedForRemoval()){
+				toRemove.add(note);
+				mLeftBuilder.removeNote(note);
+			}
+		}
+		for(HoldNote note : mLeftHoldNotes){
+			if (note.isFlaggedForRemoval()){
+				toRemove.add(note);
+				mLeftBuilder.removeHold(note);
+			}
+		}
+		mLeftRegularNotes.removeAll(toRemove);
+		mLeftHoldNotes.removeAll(toRemove);
+		
+		toRemove = new ArrayList<Note>();
 		for(Note note : mRightRegularNotes){
 			if (note.isFlaggedForRemoval()){
 				toRemove.add(note);
-				mBuilder.removeNote(note);
+				mRightBuilder.removeNote(note);
 			}
 		}
 		for(HoldNote note : mRightHoldNotes){
 			if (note.isFlaggedForRemoval()){
 				toRemove.add(note);
-				mBuilder.removeHold(note);
+				mRightBuilder.removeHold(note);
 			}
 		}
 		mRightRegularNotes.removeAll(toRemove);
@@ -834,7 +943,41 @@ public class SongEditScreen extends AbstractGameScreen {
 		update(delta);
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+		
+		if (mLeft) renderLeft(delta);
+		else renderRight(delta);
+		
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		mStage.draw();	
+		Table.drawDebug(mStage);
+		
+		if (mLeft) renderLeftTrack();
+		else renderRightTrack();
+	}
+	
+	private void renderLeft(float delta){
+		
+		Gdx.gl.glViewport(
+				(int)(Gdx.graphics.getWidth() / 2 - mLeftCamera.viewportWidth / 2), 
+				(int)(Gdx.graphics.getHeight() / 2 + mLeftCamera.position.y - mLeftCamera.viewportHeight / 2), 
+				(int)mLeftCamera.viewportWidth, 
+				(int)mLeftCamera.viewportHeight);
+		mShapeRenderer.setProjectionMatrix(mLeftCamera.combined);	
+		mShapeRenderer.begin(ShapeType.Line);
+		mShapeRenderer.setColor(Color.WHITE);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		for (int i = 0; i <= (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
+			mShapeRenderer.line(
+				-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f + i * measureWidthPixels,
+				mLeftCamera.position.y + mTrackHeight / 2.f,
+				-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f + i * measureWidthPixels,
+				mLeftCamera.position.y - mTrackHeight / 2.f);
+		}
+		mShapeRenderer.end();	
+	}
+	
+	private void renderRight(float delta){
+		
 		Gdx.gl.glViewport(
 				(int)(Gdx.graphics.getWidth() / 2 - mRightCamera.viewportWidth / 2), 
 				(int)(Gdx.graphics.getHeight() / 2 + mRightCamera.position.y - mRightCamera.viewportHeight / 2), 
@@ -852,13 +995,26 @@ public class SongEditScreen extends AbstractGameScreen {
 				mRightCamera.position.y - mTrackHeight / 2.f);
 		}
 		mShapeRenderer.end();
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		mStage.draw();	
-		Table.drawDebug(mStage);
-		renderTrack();
 	}
 	
-	private void renderTrack(){
+	private void renderLeftTrack(){
+		
+		mBatch.setProjectionMatrix(mLeftCamera.combined);
+		mBatch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		Gdx.gl.glViewport(
+				(int)(Gdx.graphics.getWidth() / 2 - mLeftCamera.viewportWidth / 2), 
+				(int)(Gdx.graphics.getHeight() / 2 + mLeftCamera.position.y - mRightCamera.viewportHeight / 2), 
+				(int)mLeftCamera.viewportWidth, 
+				(int)mLeftCamera.viewportHeight);
+		mBatch.begin();
+		renderLeftOutlines();
+		renderLeftNotes();
+		renderLeftMeasures();		
+		mBatch.end();
+		renderLeftSelection();		
+	}
+	
+	private void renderRightTrack(){
 
 		mBatch.setProjectionMatrix(mRightCamera.combined);
 		mBatch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -868,21 +1024,41 @@ public class SongEditScreen extends AbstractGameScreen {
 				(int)mRightCamera.viewportWidth, 
 				(int)mRightCamera.viewportHeight);
 		mBatch.begin();
-		renderOutlines();
-		renderNotes();
-		renderMeasures();		
+		renderRightOutlines();
+		renderRightNotes();
+		renderRightMeasures();		
 		mBatch.end();
-		renderSelection();
+		renderRightSelection();
 	}
 	
-	private void renderOutlines(){
+	private void renderLeftOutlines(){
+		
+		for(OutlineNote note : mLeftOutlines){
+			note.render(mBatch);
+		}
+	}
+	
+	private void renderRightOutlines(){
 		
 		for(OutlineNote note : mRightOutlines){
 			note.render(mBatch);
 		}
 	}
 	
-	private void renderNotes(){
+	private void renderLeftNotes(){
+		Gdx.gl20.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
+		for(Note note : mLeftRegularNotes){
+			note.render(mBatch);
+		}
+		for(HoldNote note : mLeftHoldNotes){
+			note.render(mBatch);
+		}
+		for(HoldNote note : mActiveHoldNotes){
+			note.render(mBatch);
+		}
+	}
+	
+	private void renderRightNotes(){
 		Gdx.gl20.glBlendFunc(Gdx.gl20.GL_SRC_ALPHA, Gdx.gl20.GL_ONE_MINUS_SRC_ALPHA);
 		for(Note note : mRightRegularNotes){
 			note.render(mBatch);
@@ -895,7 +1071,21 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 	}
 	
-	private void renderMeasures(){
+	private void renderLeftMeasures(){
+		int numMeasures = (int)Math.ceil(mData.getBpm() * mData.getLength() / 60.f / 4.f);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
+		float renderY = mLeftCamera.position.y + mTrackHeight / 2.f + Assets.instance.fonts.defaultFont.getLineHeight() + Constants.CELL_PADDING;
+		float renderX = -mTrackWidth / 2.f + mUpButton.getWidth();
+		for(int i = 1; i < numMeasures; ++i){			
+			Assets.instance.fonts.defaultFont.drawMultiLine(
+					mBatch, Integer.toString(i),
+					renderX, renderY,
+					0, BitmapFont.HAlignment.CENTER);
+			renderX += 4 * measureWidthPixels;
+		}
+	}
+	
+	private void renderRightMeasures(){
 		int numMeasures = (int)Math.ceil(mData.getBpm() * mData.getLength() / 60.f / 4.f);
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		float renderY = mRightCamera.position.y + mTrackHeight / 2.f + Assets.instance.fonts.defaultFont.getLineHeight() + Constants.CELL_PADDING;
@@ -909,7 +1099,24 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 	}
 	
-	private void renderSelection(){
+	private void renderLeftSelection(){
+		
+		if (!mNoteSelection.isActive()) return;
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		mShapeRenderer.begin(ShapeType.Filled);
+		mShapeRenderer.setColor(1, 1, 1, 0.35f);
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		float baseWidth = mRightOutlines[0].getBounds().width;
+		mShapeRenderer.rect(
+				-mLeftCamera.viewportWidth / 2.f + mUpButton.getWidth() / 2.f - Constants.CELL_PADDING + mNoteSelection.getStartBeat() * measureWidthPixels,
+				mLeftCamera.position.y - mTrackHeight / 2.f,
+				baseWidth + (mNoteSelection.getEndBeat() - mNoteSelection.getStartBeat()) * measureWidthPixels,
+				mTrackHeight);
+		mShapeRenderer.end();
+		Gdx.gl.glDisable(GL20.GL_BLEND);
+	}
+	
+	private void renderRightSelection(){
 		
 		if (!mNoteSelection.isActive()) return;
 		Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -934,15 +1141,18 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private boolean removeNote(NoteSlot slot, float beat){
 		
+		ArrayList<Note> currentNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
+		ArrayList<HoldNote> currentHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
 		//Don't use equality due to floating point error
-		for(Note note : mRightRegularNotes){
+		for(Note note : currentNotes){
 			if (Math.abs(note.beat - beat) < 1.f/64 && note.slot == slot){
 				note.flagForRemoval();
 				return true;
 			}
 		}
 		
-		for(HoldNote note : mRightHoldNotes){
+		for(HoldNote note : currentHoldNotes){
 			if (beat <= note.beat + note.getHoldDuration() && 
 				(beat > note.beat || Math.abs(beat - note.beat) < 1.f/64) && 
 				note.slot == slot){
@@ -956,12 +1166,20 @@ public class SongEditScreen extends AbstractGameScreen {
 	private void placeNote(float beat, NoteSlot slot, NoteType type){
 		
 		removeNote(slot, (beat - mCurrentBeat));
-		Note note = new Note(beat, slot, type, mScoreManager);
+		Note note = new Note(beat, slot, type, mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
-		note.setPosition(
+		
+		if (mLeft){
+			note.setPosition(
+				mLeftCamera.position.x - note.getBounds().width / 2.f,
+				mLeftCamera.position.y - note.getBounds().height / 2.f);
+		}
+		else{
+			note.setPosition(
 				mRightCamera.position.x - note.getBounds().width / 2.f,
 				mRightCamera.position.y - note.getBounds().height / 2.f);
+		}
 		
 		//Move to appropriate slot
 		float moveIncrement = 2 * note.getBounds().height - note.getBounds().height / 2;
@@ -985,25 +1203,45 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Move to starting position (beat 0)
-		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		if (mLeft)
+			note.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
 		//Move to appropriate beat
 		float measureWidthPixels = note.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		if (mLeft)
+			note.moveBy(measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		else
+			note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
 		
-		mRightRegularNotes.add(note);
-		mBuilder.addNote(note);
+		if (mLeft)
+			mLeftRegularNotes.add(note);
+		else
+			mRightRegularNotes.add(note);
+		
+		if (mLeft)
+			mLeftBuilder.addNote(note);
+		else
+			mRightBuilder.addNote(note);
 	}
 
 	
 	private void placeNewNote(NoteSlot slot, NoteType type){
 		
-		Note note = new Note(mCurrentBeat, slot, type, mScoreManager);
+		Note note = new Note(mCurrentBeat, slot, type, mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
-		note.setPosition(
+		if (mLeft){
+			note.setPosition(
+				mLeftCamera.position.x - note.getBounds().width / 2.f,
+				mLeftCamera.position.y - note.getBounds().height / 2.f);
+		}
+		else{
+			note.setPosition(
 				mRightCamera.position.x - note.getBounds().width / 2.f,
 				mRightCamera.position.y - note.getBounds().height / 2.f);
+		}
 		
 		//Move to appropriate slot
 		float moveIncrement = 2 * note.getBounds().height - note.getBounds().height / 2;
@@ -1027,21 +1265,38 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Move to starting position (beat 0)
-		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		if (mLeft)
+			note.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
-		mRightRegularNotes.add(note);
-		mBuilder.addNote(note);
+		if (mLeft)
+			mLeftRegularNotes.add(note);
+		else
+			mRightRegularNotes.add(note);
+		
+		if (mLeft)
+			mLeftBuilder.addNote(note);
+		else
+			mRightBuilder.addNote(note);
 	}
 	
 	private void placeHoldNote(float beat, float duration, NoteSlot slot, NoteType type){
 		
 		removeNote(slot, (beat - mCurrentBeat));
-		HoldNote note = new HoldNote(beat, slot, type, duration, mData.getBpm(), mScoreManager);
+		HoldNote note = new HoldNote(beat, slot, type, duration, mData.getBpm(), mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
-		note.setPosition(
+		if (mLeft){
+			note.setPosition(
+				mLeftCamera.position.x - note.getHitBounds().width / 2.f,
+				mLeftCamera.position.y - note.getHitBounds().height / 2.f);
+		}
+		else{
+			note.setPosition(
 				mRightCamera.position.x - note.getHitBounds().width / 2.f,
 				mRightCamera.position.y - note.getHitBounds().height / 2.f);
+		}
 		
 		//Move to appropriate slot
 		float moveIncrement = 2 * note.getHitBounds().height - note.getHitBounds().height / 2;
@@ -1065,25 +1320,45 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Move to starting position (beat 0)
-		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		if (mLeft)
+			note.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
 		//Move to appropriate beat
 		float measureWidthPixels = note.getHitBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		if (mLeft)
+			note.moveBy(measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		else
+			note.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
 		
-		mRightHoldNotes.add(note);
-		mBuilder.addHold(note);
+		if (mLeft)
+			mLeftHoldNotes.add(note);
+		else
+			mRightHoldNotes.add(note);
+		
+		if (mLeft)
+			mLeftBuilder.addHold(note);
+		else
+			mRightBuilder.addHold(note);
 	}
 	
 	private void placeNewHoldNote(NoteSlot slot, NoteType type){
 		
 		removeNote(slot, mCurrentBeat);
-		HoldNote note = new HoldNote(mCurrentBeat, slot, type, 0.f, mData.getBpm(), mScoreManager);
+		HoldNote note = new HoldNote(mCurrentBeat, slot, type, 0.f, mData.getBpm(), mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
-		note.setPosition(
+		if (mLeft){
+			note.setPosition(
+				mLeftCamera.position.x - note.getHitBounds().width / 2.f,
+				mLeftCamera.position.y - note.getHitBounds().height / 2.f);
+		}
+		else{
+			note.setPosition(
 				mRightCamera.position.x - note.getHitBounds().width / 2.f,
 				mRightCamera.position.y - note.getHitBounds().height / 2.f);
+		}
 		
 		//Move to appropriate slot
 		float moveIncrement = 2 * note.getHitBounds().height - note.getHitBounds().height / 2;
@@ -1107,114 +1382,284 @@ public class SongEditScreen extends AbstractGameScreen {
 		}
 		
 		//Move to starting position (beat 0)
-		note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		if (mLeft)
+			note.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			note.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
 		
 		mActiveHoldNotes.add(note);
 	}
 	
 	private void onLeftPress(){
 		
+		//If we're at beat 0 or max beat return
+		if (mCurrentBeat == 0.f && mLeft) return;
 		int maxBeat = (int) (mData.getBpm() * (mData.getLength() / 60.f));
-		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1) return;
-		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
-		mCurrentBeatFraction = mCurrentBeatFraction.plus(1, mNoteQuantizations[mColorIndex]);
-	
-		if (mCurrentBeatFraction.toFloat() > maxBeat)
-			mCurrentBeatFraction = new Fraction(maxBeat, 1);
+		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1 && !mLeft) return;
 		
-		if ((int)mCurrentBeatFraction.toFloat() == maxBeat){
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
+		if (mLeft)
+			mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
+		else
+			mCurrentBeatFraction = mCurrentBeatFraction.plus(1, mNoteQuantizations[mColorIndex]);
+		
+		
+		//We've scrolled before the first beat
+		if (mCurrentBeatFraction.toFloat() < 0.f && mLeft){
+			
+			for(OutlineNote note : mLeftOutlines){
+				note.moveBy(-mCurrentBeat * measureWidthPixels, 0.f);
+			}
+			mLeftCamera.translate(-mCurrentBeat * measureWidthPixels, 0.f);
+			
+			for(OutlineNote note : mRightOutlines){
+				note.moveBy(mCurrentBeat * measureWidthPixels, 0.f);
+			}
+			mRightCamera.translate(mCurrentBeat * measureWidthPixels, 0.f);
+			
+			mCurrentBeatFraction = new Fraction();
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = 0.f;
+		}
+		
+		//We've scrolled past the max beat
+		else if (mCurrentBeatFraction.toFloat() > maxBeat && !mLeft){
+			
 			for(OutlineNote note : mRightOutlines){
 				note.moveBy(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
 			}
 			mRightCamera.translate(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			
+			for(OutlineNote note : mLeftOutlines){
+				note.moveBy((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			}
+			mLeftCamera.translate((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			
+			mCurrentBeatFraction = new Fraction(maxBeat, 1);
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);					
 		}
-		else{			
-			for(OutlineNote note : mRightOutlines){
+		
+		else{
+			
+			OrthographicCamera currentCam;
+			OrthographicCamera otherCam;
+			OutlineNote[] currentOutlines;
+			OutlineNote[] otherOutlines;
+			if (mLeft){
+				currentCam = mLeftCamera;
+				otherCam = mRightCamera;
+				currentOutlines = mLeftOutlines;
+				otherOutlines = mRightOutlines;
+			}
+			else{
+				currentCam = mRightCamera;
+				otherCam = mLeftCamera;
+				currentOutlines = mRightOutlines;
+				otherOutlines = mLeftOutlines;
+			}
+
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
+			currentCam.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			otherCam.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+
+			for(OutlineNote note : currentOutlines){
 				note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 			}
-			mRightCamera.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			
+			for(OutlineNote note : otherOutlines){
+				note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			}
 		}
 		
-		mCurrentBeat = mCurrentBeatFraction.toFloat();
-		mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
+		mLeftCamera.update();
 		mRightCamera.update();
 		
-		//Extend active hold notes accordingly
-		for(HoldNote activeNote : mActiveHoldNotes){
-			activeNote.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
-			
-			//Remove regular and hold notes along the way
-			for(Note regNote : mRightRegularNotes){
-				if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
-					(regNote.beat > activeNote.beat || Math.abs(regNote.beat - activeNote.beat) < 1.f / 64) && 
-					activeNote.slot == regNote.slot){
-					regNote.flagForRemoval();
+		ArrayList<Note> activeNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
+		ArrayList<HoldNote> activeHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
+		if (mLeft){
+			ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
+			//Decrease active hold notes length accordingly
+			for(HoldNote activeNote : mActiveHoldNotes){
+				
+				//Remove active hold notes where we've scrolled past their starting point
+				if (mCurrentBeat < activeNote.beat){
+					toRemove.add(activeNote);		
+					continue;
 				}
+				activeNote.addHoldDuration(-1.f / mNoteQuantizations[mColorIndex]);
 			}
-			for(HoldNote holdNote : mRightHoldNotes){
-				if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
-					(holdNote.beat > activeNote.beat || Math.abs(holdNote.beat - activeNote.beat) < 1.f / 64) && 
-					activeNote.slot == holdNote.slot){
-					holdNote.flagForRemoval();
+			mActiveHoldNotes.removeAll(toRemove);
+		}
+		
+		else{
+			
+			//Extend active hold notes accordingly
+			for(HoldNote activeNote : mActiveHoldNotes){
+				activeNote.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
+				
+				//Remove regular and hold notes along the way
+				for(Note regNote : activeNotes){
+					if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+						(regNote.beat > activeNote.beat || Math.abs(regNote.beat - activeNote.beat) < 1.f / 64) && 
+						activeNote.slot == regNote.slot){
+						regNote.flagForRemoval();
+					}
+				}
+				for(HoldNote holdNote : activeHoldNotes){
+					if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+						(holdNote.beat > activeNote.beat || Math.abs(holdNote.beat - activeNote.beat) < 1.f / 64) && 
+						activeNote.slot == holdNote.slot){
+						holdNote.flagForRemoval();
+					}
 				}
 			}
 		}
 	}
 	
 	private void onRightPress(){
-			
-		if (mCurrentBeat == 0.f) return;
-		mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
-		if (mCurrentBeatFraction.toFloat() < 0.f)
-			mCurrentBeatFraction = new Fraction();
-		mCurrentBeat = mCurrentBeatFraction.toFloat();
-		if (mCurrentBeat == 0.f)
-			mCurrentSecond = 0.f;
-		else
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 		
-		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		if (mCurrentBeat == 0.f)
-			mRightCamera.position.x = 0.f;
+		//If we're at beat 0 or max beat return
+		if (mCurrentBeat == 0.f && !mLeft) return;
+		int maxBeat = (int) (mData.getBpm() * (mData.getLength() / 60.f));
+		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1 && mLeft) return;
+		
+		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
+		if (!mLeft)
+			mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
 		else
-			mRightCamera.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
-		mRightCamera.update();
+			mCurrentBeatFraction = mCurrentBeatFraction.plus(1, mNoteQuantizations[mColorIndex]);
+		
+		
+		//We've scrolled before the first beat
+		if (mCurrentBeatFraction.toFloat() < 0.f && !mLeft){
 			
-		float beatZeroX = mRightCamera.viewportWidth / 2.f - mUpButton.getWidth() - mRightOutlines[0].getBounds().width / 2.f;
-		if (mCurrentBeat == 0.f){
 			for(OutlineNote note : mRightOutlines){
-				note.setPosition(beatZeroX, note.position.y);
+				note.moveBy(mCurrentBeat * measureWidthPixels, 0.f);
 			}
+			mRightCamera.translate(mCurrentBeat * measureWidthPixels, 0.f);	
+			
+			for(OutlineNote note : mLeftOutlines){
+				note.moveBy(-mCurrentBeat * measureWidthPixels, 0.f);
+			}
+			mLeftCamera.translate(-mCurrentBeat * measureWidthPixels, 0.f);	
+			
+			mCurrentBeatFraction = new Fraction();
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = 0.f;
 		}
-		else{			
+		
+		//We've scrolled past the max beat
+		else if (mCurrentBeatFraction.toFloat() > maxBeat && mLeft){
+			
+			for(OutlineNote note : mLeftOutlines){
+				note.moveBy((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			}
+			mLeftCamera.translate((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			
 			for(OutlineNote note : mRightOutlines){
+				note.moveBy(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			}
+			mRightCamera.translate(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
+			
+			mCurrentBeatFraction = new Fraction(maxBeat, 1);
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);			
+		}
+		
+		else{
+			
+			OrthographicCamera currentCam;
+			OrthographicCamera otherCam;
+			OutlineNote[] currentOutlines;
+			OutlineNote[] otherOutlines;
+			if (mLeft){
+				currentCam = mLeftCamera;
+				otherCam = mRightCamera;
+				currentOutlines = mLeftOutlines;
+				otherOutlines = mRightOutlines;
+			}
+			else{
+				currentCam = mRightCamera;
+				otherCam = mLeftCamera;
+				currentOutlines = mRightOutlines;
+				otherOutlines = mLeftOutlines;
+			}
+
+			mCurrentBeat = mCurrentBeatFraction.toFloat();
+			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
+			currentCam.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			otherCam.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+
+			for(OutlineNote note : currentOutlines){
 				note.moveBy(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 			}
+			
+			for(OutlineNote note : otherOutlines){
+				note.moveBy(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
+			}
 		}
 		
-		ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
-		//Decrease active hold notes length accordingly
-		for(HoldNote activeNote : mActiveHoldNotes){
-			
-			//Remove active hold notes where we've scrolled past their starting point
-			if (mCurrentBeat < activeNote.beat){
-				toRemove.add(activeNote);		
-				continue;
+		mLeftCamera.update();
+		mRightCamera.update();
+		
+		ArrayList<Note> activeNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
+		ArrayList<HoldNote> activeHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
+		if (!mLeft){
+			ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
+			//Decrease active hold notes length accordingly
+			for(HoldNote activeNote : mActiveHoldNotes){
+				
+				//Remove active hold notes where we've scrolled past their starting point
+				if (mCurrentBeat < activeNote.beat){
+					toRemove.add(activeNote);		
+					continue;
+				}
+				activeNote.addHoldDuration(-1.f / mNoteQuantizations[mColorIndex]);
 			}
-			activeNote.addHoldDuration(-1.f / mNoteQuantizations[mColorIndex]);
+			mActiveHoldNotes.removeAll(toRemove);
 		}
-		mActiveHoldNotes.removeAll(toRemove);
+		
+		else{
+			
+			//Extend active hold notes accordingly
+			for(HoldNote activeNote : mActiveHoldNotes){
+				activeNote.addHoldDuration(1.f / mNoteQuantizations[mColorIndex]);
+				
+				//Remove regular and hold notes along the way
+				for(Note regNote : activeNotes){
+					if (regNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+						(regNote.beat > activeNote.beat || Math.abs(regNote.beat - activeNote.beat) < 1.f / 64) && 
+						activeNote.slot == regNote.slot){
+						regNote.flagForRemoval();
+					}
+				}
+				for(HoldNote holdNote : activeHoldNotes){
+					if (holdNote.beat <= activeNote.beat + activeNote.getHoldDuration() && 
+						(holdNote.beat > activeNote.beat || Math.abs(holdNote.beat - activeNote.beat) < 1.f / 64) && 
+						activeNote.slot == holdNote.slot){
+						holdNote.flagForRemoval();
+					}
+				}
+			}
+		}
 	}
 	
 	private void onUpPress(){
-		
+
 		if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) ||
 			Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
 			float newZoom = mRightCamera.zoom - Constants.ZOOM_INCREMENT;
 			if (newZoom < Constants.MIN_ZOOM)
 				return;
-			else
+			else{
 				mRightCamera.zoom = newZoom;
+				mLeftCamera.zoom = newZoom;
+			}
+			mLeftCamera.update();
 			mRightCamera.update();
 		}
 		
@@ -1226,14 +1671,17 @@ public class SongEditScreen extends AbstractGameScreen {
 	}
 	
 	private void onDownPress(){
-		
+
 		if (Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) ||
 			Gdx.input.isKeyPressed(Keys.CONTROL_RIGHT)){
 			float newZoom = mRightCamera.zoom + Constants.ZOOM_INCREMENT;
 			if (newZoom > Constants.MAX_ZOOM)
 				return;
-			else
+			else{
 				mRightCamera.zoom = newZoom;
+				mLeftCamera.zoom = newZoom;
+			}
+			mLeftCamera.update();
 			mRightCamera.update();
 		}
 		
@@ -1290,11 +1738,20 @@ public class SongEditScreen extends AbstractGameScreen {
 		//Place rest of hold notes
 		for(HoldNote note : mActiveHoldNotes){
 			if (note.slot == slot){
-				mRightHoldNotes.add(note);
-				mBuilder.addHold(note);
+				if (mLeft){
+					mLeftHoldNotes.add(note);
+					mLeftBuilder.addHold(note);
+				}
+				else{
+					mRightHoldNotes.add(note);
+					mRightBuilder.addHold(note);
+				}
 			}
 		}
-		mActiveHoldNotes.removeAll(mRightHoldNotes);		
+		if (mLeft)
+			mActiveHoldNotes.removeAll(mLeftHoldNotes);		
+		else
+			mActiveHoldNotes.removeAll(mRightHoldNotes);		
 	}
 	
 	private void scrollToBeat(int beat){
@@ -1304,11 +1761,19 @@ public class SongEditScreen extends AbstractGameScreen {
 		if (beat < 0) beat = 0;
 		float distanceBeats = mCurrentBeat - beat;
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		
+		mLeftCamera.translate(-distanceBeats * measureWidthPixels, 0.f);
 		mRightCamera.translate(distanceBeats * measureWidthPixels, 0.f);
+		
+		mLeftCamera.update();
 		mRightCamera.update();
-		for(OutlineNote note : mRightOutlines){
+		
+		for(OutlineNote note : mLeftOutlines)
+			note.moveBy(-distanceBeats * measureWidthPixels, 0);
+
+		for(OutlineNote note : mRightOutlines)
 			note.moveBy(distanceBeats * measureWidthPixels, 0);
-		}
+
 		mCurrentBeatFraction = new Fraction(beat, 1);
 		mCurrentBeat = beat;
 	}
@@ -1317,16 +1782,20 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		ArrayList<Note> notes = new ArrayList<Note>();
 		ArrayList<HoldNote> holds = new ArrayList<HoldNote>();
+		
+		ArrayList<Note> currentNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
+		ArrayList<HoldNote> currentHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
 		if (!mNoteSelection.isOpen() && mNoteSelection.isActive()){
 			
-			for (Note note : mRightRegularNotes){
+			for (Note note : currentNotes){
 				if (note.beat >= mNoteSelection.getStartBeat() && note.beat <= mNoteSelection.getEndBeat()){
 					notes.add(new Note(note, new ScoreManager()));
 					note.flagForRemoval();
 				}
 			}
 			
-			for (HoldNote hold : mRightHoldNotes){
+			for (HoldNote hold : currentHoldNotes){
 				if (hold.beat >= mNoteSelection.getStartBeat() && hold.beat <= mNoteSelection.getEndBeat()){
 					holds.add(new HoldNote(hold, mData.getBpm(), new ScoreManager()));
 					hold.flagForRemoval();
@@ -1337,16 +1806,21 @@ public class SongEditScreen extends AbstractGameScreen {
 	}
 	
 	private void copyNotes(){
+		
 		ArrayList<Note> notes = new ArrayList<Note>();
 		ArrayList<HoldNote> holds = new ArrayList<HoldNote>();
+		
+		ArrayList<Note> currentNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
+		ArrayList<HoldNote> currentHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
 		if (!mNoteSelection.isOpen() && mNoteSelection.isActive()){
 			
-			for (Note note : mRightRegularNotes){
+			for (Note note : currentNotes){
 				if (note.beat >= mNoteSelection.getStartBeat() && note.beat <= mNoteSelection.getEndBeat())
 					notes.add(new Note(note, new ScoreManager()));
 			}
 			
-			for (HoldNote hold : mRightHoldNotes){
+			for (HoldNote hold : currentHoldNotes){
 				if (hold.beat >= mNoteSelection.getStartBeat() && hold.beat <= mNoteSelection.getEndBeat())
 					holds.add(new HoldNote(hold, mData.getBpm(), new ScoreManager()));
 			}			
