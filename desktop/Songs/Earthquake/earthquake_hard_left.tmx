@@ -1,0 +1,77 @@
+<map version="1.0" orientation="orthogonal" width="1809" height="3" tilewidth="1" tileheight="1">
+	<properties>
+		<property name="bpm" value="125.0"/>
+		<property name="offset" value="0.43"/>
+		<property name="title" value="Earthquake"/>
+		<property name="artist" value="HD Dubstep"/>
+		<property name="length" value="217"/>
+	</properties>
+	<objectgroup name="Notes" width="1809" height="3"/>
+	<objectgroup name="Holds" width="1809" height="3">
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="32.0"/>
+				<property name="slot" value="top_left"/>
+				<property name="hold" value="3.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="36.0"/>
+				<property name="slot" value="middle_left"/>
+				<property name="hold" value="3.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="40.0"/>
+				<property name="slot" value="bottom_left"/>
+				<property name="hold" value="3.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="44.0"/>
+				<property name="slot" value="bottom_left"/>
+				<property name="hold" value="1.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="46.0"/>
+				<property name="slot" value="bottom_left"/>
+				<property name="hold" value="1.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="48.0"/>
+				<property name="slot" value="top_left"/>
+				<property name="hold" value="3.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="52.0"/>
+				<property name="slot" value="middle_left"/>
+				<property name="hold" value="3.0"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="56.0"/>
+				<property name="slot" value="bottom_left"/>
+				<property name="hold" value="7.0"/>
+			</properties>
+		</object>
+	</objectgroup>
+	<objectgroup name="Markers" width="1809" height="3"/>
+</map>

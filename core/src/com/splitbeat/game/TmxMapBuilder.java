@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
 import com.badlogic.gdx.utils.XmlWriter;
@@ -222,11 +223,26 @@ public class TmxMapBuilder {
 				.element("objectgroup")
 					.attribute("name", "Markers")
 					.attribute("width", mRoot.getAttribute("width"))
-					.attribute("height", mRoot.getAttribute("height"))
-				.pop()
+					.attribute("height", mRoot.getAttribute("height"));
+				Element markerGroup = mRoot.getChild(3);
+				for (int i = 0; i < markerGroup.getChildCount(); ++i){
+					xmlWriter
+						.element("object")
+							.element("properties")
+								.element("property")
+									.attribute("name", "beat")
+									.attribute("value", markerGroup.getChild(i).getChild(0).getChild(0).get("value"))
+								.pop()
+								.element("property")
+									.attribute("name", "bpm")
+									.attribute("value", markerGroup.getChild(i).getChild(0).getChild(1).get("value"))
+								.pop()
+							.pop()
+						.pop();
+				}
+				xmlWriter.pop()
 			.pop();
 			xmlWriter.close();
-			Assets.instance.maps.updateMap(mData.getName(), mDifficulty, mData);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -374,10 +390,52 @@ public class TmxMapBuilder {
 	
 	public void addMarker(BPMMarker marker){
 		
+		Element markerGroup = mRoot.getChild(3);
+		Element noteEle = new Element("object", markerGroup);
+		Element propEle = new Element("properties", noteEle);
+
+		Element beatEle = new Element("property", propEle);
+		beatEle.setAttribute("name", "beat");
+		beatEle.setAttribute("value", Float.toString(marker.beat));
+		propEle.addChild(beatEle);
+		
+		Element bpmEle = new Element("property", propEle);
+		bpmEle.setAttribute("name", "bpm");
+		bpmEle.setAttribute("value", Float.toString(marker.bpm));
+		propEle.addChild(bpmEle);
+		
+		noteEle.addChild(propEle);
+		markerGroup.addChild(noteEle);
+	}
+	
+	public void removeMarker(BPMMarker marker){
+		
+		Element markerGroup = mRoot.getChild(3);
+		for (int i = 0; i < markerGroup.getChildCount(); ++i){
+			
+			Element markerEle = markerGroup.getChild(i);
+			Element beatEle = markerEle.getChild(0).getChild(0);
+			float beat = Float.parseFloat(beatEle.getAttribute("value"));
+			if (Math.abs(beat - marker.beat) < 1.f / 64){
+				markerEle.remove();
+				return;
+			}
+		}
+		
 	}
 	
 	public void addMarkers(ArrayList<BPMMarker> markers){
 		
+		for(BPMMarker marker : markers){
+			addMarker(marker);
+		}
+	}
+		
+	public void removeMarkers(ArrayList<BPMMarker> markers){
+		
+		for(BPMMarker marker : markers){
+			removeMarker(marker);
+		}
 	}
 
 }

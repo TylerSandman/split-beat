@@ -259,7 +259,7 @@ public class MenuScreen extends AbstractGameScreen {
 	}
 	
 	private void onEditClicked(){
-		game.setScreen(new EditSelectionScreen(game));
+		game.setScreen(new EditExistingScreen(game));
 	}
 	
 	private void onSyncClicked(){

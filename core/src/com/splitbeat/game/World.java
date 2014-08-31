@@ -167,8 +167,8 @@ public class World implements Disposable{
 	}
 	
 	protected void initMaps(){
-		mLeftMap = Assets.instance.maps.dataMap.get(mSongName).getLeftMap(Difficulty.Easy);
-		mRightMap = Assets.instance.maps.dataMap.get(mSongName).getRightMap(Difficulty.Easy);
+		mLeftMap = Assets.instance.maps.dataMap.get(mSongName).getLeftMap(mDifficulty);
+		mRightMap = Assets.instance.maps.dataMap.get(mSongName).getRightMap(mDifficulty);
 	}
 	
 	protected void initMusic(){			

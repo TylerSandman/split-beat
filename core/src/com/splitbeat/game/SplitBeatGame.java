@@ -1,6 +1,7 @@
 package com.splitbeat.game;
 
-import java.util.Map;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.assets.AssetManager;
@@ -16,15 +17,21 @@ public class SplitBeatGame extends Game {
 		//We are initially setting a game screen and destroying it
 		//so the game stays in sync and all songs take a consistent
 		//amount of time to load. Kind of hacky but it gets the job done.
-		String songName = Assets.instance.maps.dataMap.entrySet().iterator().next().getKey();
+		Iterator<Entry<String, SongData>> it = Assets.instance.maps.dataMap.entrySet().iterator();
+		String songName = it.next().getKey();
 		Difficulty difficulty  = Difficulty.Hard;
+		while ((Assets.instance.maps.dataMap.get(songName).getLeftMap(Difficulty.Easy) == null) &&
+			   (Assets.instance.maps.dataMap.get(songName).getLeftMap(Difficulty.Medium) == null) &&
+			   (Assets.instance.maps.dataMap.get(songName).getLeftMap(Difficulty.Hard) == null)){
+			songName = it.next().getKey();
+		}
 		for (Difficulty dif : Difficulty.values()){
-			if (Assets.instance.maps.dataMap.get(songName).getLeftMap(dif) != null);
-			difficulty = dif;
+			if (Assets.instance.maps.dataMap.get(songName).getLeftMap(dif) != null)
+				difficulty = dif;
 		}
 		setScreen(new GameScreen(
 				this, 
-				(String) (Assets.instance.maps.dataMap.entrySet().iterator().next().getKey()), 
+				songName, 
 				difficulty));
 		setScreen(new MenuScreen(this));
 	}

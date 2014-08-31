@@ -62,6 +62,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private NoteClipboard mClipboard;
 	private NoteSelection mNoteSelection;
 	private boolean mLeft;
+	private boolean mTrackSwitchRequested;
 	
 	private Stage mStage;
 	private InputListener mListener;
@@ -79,9 +80,11 @@ public class SongEditScreen extends AbstractGameScreen {
 	private Table mInformationTable;
 	private Image mMenuBackground;
 	private Label mCurrentBeatLabel;
-	private Label mCurrentSecondLabel;
 	private Label mSnapToLabel;
 	private Label mLengthLabel;
+	
+	private Dialog mBpmChangeDialog;
+	private TextField mBpmChangeInput;
 	
 	private Dialog mBeatJumpDialog;
 	private TextField mBeatJumpInput;
@@ -95,7 +98,6 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private Fraction mCurrentBeatFraction;
 	private float mCurrentBeat;
-	private float mCurrentSecond;
 	private int mColorIndex;
 	private float mTrackWidth;
 	private float mTrackHeight;
@@ -126,6 +128,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mEditItems = new String[]{
 				"Switch tracks",
 				"Steps information",
+				"Edit BPM Change",
 				"Jump to beat",
 				"Open/close selector",
 				"Cut",
@@ -157,6 +160,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mClipboard = new NoteClipboard();
 		mNoteSelection = new NoteSelection();
 		mLeft = false;
+		mTrackSwitchRequested = false;
 		
 		mSkin = new Skin(
 				Gdx.files.internal(Constants.GUI_SKIN),
@@ -195,8 +199,22 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightCamera.update();
 		
 		mData = Assets.instance.maps.dataMap.get(mName);
+		
 		mLeftBuilder.create(mData, mDifficulty);
 		mRightBuilder.create(mData, mDifficulty);
+		
+		String leftSongPath = 
+				Constants.DEFAULT_MAPS_PATH + "/" + mData.getName() + "/" + 
+				mData.getName().toLowerCase().replace(" ", "_");
+		leftSongPath += "_" + mDifficulty.toString() + "_left" + ".tmx";
+		String rightSongPath = leftSongPath.replace("left", "right");
+		if (!Gdx.files.local(leftSongPath).exists() && !Gdx.files.local(rightSongPath).exists()){
+			mLeftBuilder.save();
+			mRightBuilder.save();
+			Assets.instance.maps.updateMap(mData.getName(), mDifficulty, mData);
+			mData = Assets.instance.maps.dataMap.get(mName);
+		}
+		
 		mLeftMap = mData.getLeftMap(mDifficulty);
 		mRightMap = mData.getRightMap(mDifficulty);
 		mPendingChangeData = new SongData(mData);
@@ -237,7 +255,8 @@ public class SongEditScreen extends AbstractGameScreen {
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mLeftMarkers.add(MarkerFactory.createMarker(marker, mLeftMap, true));
+				BPMMarker toAdd = MarkerFactory.createMarker(marker, mLeftMap, true);
+				placeMarker(toAdd.beat, toAdd.bpm);
 			}
 		}
 		
@@ -270,7 +289,8 @@ public class SongEditScreen extends AbstractGameScreen {
 			MapObjects markers = markerLayer.getObjects();
 			
 			for(MapObject marker : markers){
-				mRightMarkers.add(MarkerFactory.createMarker(marker, mRightMap, false));
+				BPMMarker toAdd = MarkerFactory.createMarker(marker, mRightMap, false);
+				placeMarker(toAdd.beat, toAdd.bpm);
 			}
 		}
 		
@@ -414,7 +434,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mEditDropDownMenu.addItemListener(0, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
-				mLeft = !mLeft;
+				requestTrackSwitch();
 			}
 
 		});
@@ -435,8 +455,20 @@ public class SongEditScreen extends AbstractGameScreen {
 
 		});
 		
-		//Jump to Beat
+		//Edit BPM Change
 		mEditDropDownMenu.addItemListener(2, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				mBpmChangeInput.setText(Float.toString(getBpm(mCurrentBeat)));
+				mBpmChangeDialog.show(mStage);
+				mStage.removeListener(mListener);
+				mStage.setKeyboardFocus(mBpmChangeInput);
+				mBpmChangeDialog.padTop(2 * Constants.CELL_PADDING);
+			}
+		});
+		
+		//Jump to Beat
+		mEditDropDownMenu.addItemListener(3, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				mBeatJumpDialog.show(mStage);
@@ -447,7 +479,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Open/close selector
-		mEditDropDownMenu.addItemListener(3, new InputListener(){
+		mEditDropDownMenu.addItemListener(4, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				if (mNoteSelection.isOpen())
@@ -462,7 +494,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Cut
-		mEditDropDownMenu.addItemListener(4, new InputListener(){
+		mEditDropDownMenu.addItemListener(5, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				cutNotes();
@@ -470,7 +502,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Copy
-		mEditDropDownMenu.addItemListener(5, new InputListener(){
+		mEditDropDownMenu.addItemListener(6, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				copyNotes();
@@ -478,7 +510,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Paste
-		mEditDropDownMenu.addItemListener(6, new InputListener(){
+		mEditDropDownMenu.addItemListener(7, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				pasteNotes();
@@ -486,7 +518,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Save
-		mEditDropDownMenu.addItemListener(7, new InputListener(){
+		mEditDropDownMenu.addItemListener(8, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				onSave();
@@ -495,7 +527,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Exit
-		mEditDropDownMenu.addItemListener(8, new InputListener(){
+		mEditDropDownMenu.addItemListener(9, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				game.setScreen(new MenuScreen(game));
@@ -570,10 +602,6 @@ public class SongEditScreen extends AbstractGameScreen {
 		currentBeatHeader.setAlignment(Align.center);
 		currentBeatHeader.setWrap(true);
 		
-		Label currentSecondHeader = new Label("Current Time", mSkin);
-		currentSecondHeader.setAlignment(Align.center);
-		currentSecondHeader.setWrap(true);
-		
 		Label snapToHeader = new Label("Snap to", mSkin);
 		snapToHeader.setAlignment(Align.center);
 		snapToHeader.setWrap(true);
@@ -586,10 +614,6 @@ public class SongEditScreen extends AbstractGameScreen {
 		mCurrentBeatLabel.setAlignment(Align.center);
 		mCurrentBeatLabel.setWrap(true);
 		
-		mCurrentSecondLabel = new Label("", mSkin);
-		mCurrentSecondLabel.setAlignment(Align.center);
-		mCurrentSecondLabel.setWrap(true);
-		
 		mSnapToLabel = new Label("",  mSkin);
 		mSnapToLabel.setAlignment(Align.center);
 		mSnapToLabel.setWrap(true);
@@ -599,11 +623,9 @@ public class SongEditScreen extends AbstractGameScreen {
 		mLengthLabel.setWrap(true);;
 
 		mInformationTable.add(currentBeatHeader).fillX().expandX();
-		mInformationTable.add(currentSecondHeader).fillX().expandX();
 		mInformationTable.add(snapToHeader).fillX().expandX();
 		mInformationTable.add(songLengthHeader).fillX().expandX().row();
 		mInformationTable.add(mCurrentBeatLabel).fillX().expandX();
-		mInformationTable.add(mCurrentSecondLabel).fillX().expandX();
 		mInformationTable.add(mSnapToLabel).fillX().expandX();
 		mInformationTable.add(mLengthLabel).fillX().expandX();
 		mInformationTable.setWidth(mRightCamera.viewportWidth - 2 * Assets.instance.gui.upArrow.getRegionWidth());
@@ -621,8 +643,64 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void buildDialogs(){
 		
+		buildBpmChangeDialog();
 		buildBeatJumpDialog();
 		buildSongInformationDialog();	
+	}
+	
+	private void buildBpmChangeDialog(){
+		
+		mBpmChangeDialog = new Dialog("Edit BPM at Current Beat", mSkin, "default");
+		mBpmChangeInput = new TextField("", mSkin);
+		
+		//Accept only digits and decimals
+		mBpmChangeInput.setTextFieldFilter(new TextFieldFilter(){
+			
+			public boolean acceptChar(TextField textField, char c){
+				if (Character.isDigit(c) || c == '.') return true;
+				return false;
+			}
+		});
+		
+		mBpmChangeInput.setTextFieldListener(new TextFieldListener(){
+
+			@Override
+			public void keyTyped(TextField textField, char c) {
+				if (c == '\n' || c == '\r'){
+					if (!mBpmChangeInput.getText().equals("")){
+						mBpmChangeDialog.hide();
+						mStage.setKeyboardFocus(mEditDropDownMenu);
+						placeNewMarker(Float.parseFloat(mBpmChangeInput.getText()));
+						mBpmChangeInput.setText("");
+						mStage.addListener(mListener);
+					}
+				}
+			}	
+		});
+			
+		mBpmChangeDialog.setPosition(Gdx.graphics.getWidth() / 2.f, Gdx.graphics.getHeight() / 2.f);		
+
+		mBpmChangeDialog.row();
+		mBpmChangeDialog.add(mBpmChangeInput).pad(Constants.CELL_PADDING).row();
+		
+		Button goButton = new TextButton("Go", mSkin, "default");
+		
+		goButton.addListener(new ClickListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
+				if (!mBpmChangeInput.getText().equals("")){
+					mBpmChangeDialog.hide();
+					mStage.setKeyboardFocus(mEditDropDownMenu);
+					placeNewMarker(Float.parseFloat(mBpmChangeInput.getText()));
+					mBpmChangeInput.setText("");
+					mStage.addListener(mListener);
+				}
+				return true;
+			}
+		});
+		
+		mBpmChangeDialog.add(goButton).row();
+		mBpmChangeDialog.setBackground(new NinePatchDrawable(Assets.instance.gui.greyPanelNinePatch));
 	}
 	
 	private void buildBeatJumpDialog(){
@@ -794,6 +872,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightBuilder.updateSongData(mPendingChangeData);
 		mLeftBuilder.save();	
 		mRightBuilder.save();
+		Assets.instance.maps.updateMap(mData.getName(), mDifficulty, mPendingChangeData);
 		Options.instance.updateScores(mData.getName(), mPendingChangeData.getName());
 		mData = new SongData(mPendingChangeData);
 	}
@@ -888,10 +967,6 @@ public class SongEditScreen extends AbstractGameScreen {
 		String beatStr = String.format("%.3f", mCurrentBeat);
 		mCurrentBeatLabel.setText(beatStr);
 		
-		String secondStr = String.format("%.2f", mCurrentSecond);
-		secondStr += " s";
-		mCurrentSecondLabel.setText(secondStr);
-		
 		int quantization = mNoteQuantizations[mColorIndex];
 		String snapStr = Integer.toString(quantization * 4);
 		snapStr += (quantization == 8) ? "nd" : "th";
@@ -939,6 +1014,10 @@ public class SongEditScreen extends AbstractGameScreen {
 	@Override
 	public void render(float delta) {
 		
+		if (mTrackSwitchRequested){
+			mLeft = !mLeft;
+			mTrackSwitchRequested = false;
+		}
 		mStage.act(delta);
 		update(delta);
 		Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -966,7 +1045,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mShapeRenderer.begin(ShapeType.Line);
 		mShapeRenderer.setColor(Color.WHITE);
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		for (int i = 0; i <= (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
+		for (int i = 0; i <= (int)Math.ceil(mCurrentBeat) + 20; ++i){
 			mShapeRenderer.line(
 				-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f + i * measureWidthPixels,
 				mLeftCamera.position.y + mTrackHeight / 2.f,
@@ -987,7 +1066,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mShapeRenderer.begin(ShapeType.Line);
 		mShapeRenderer.setColor(Color.WHITE);
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;
-		for (int i = 0; i <= (int)(mData.getBpm() * (mData.getLength() / 60.f)); ++i){
+		for (int i = 0; i <= (int)Math.ceil(mCurrentBeat) + 20; ++i){
 			mShapeRenderer.line(
 				mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f - i * measureWidthPixels,
 				mRightCamera.position.y + mTrackHeight / 2.f,
@@ -1009,7 +1088,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBatch.begin();
 		renderLeftOutlines();
 		renderLeftNotes();
-		renderLeftMeasures();		
+		renderLeftMeasures();	
+		renderLeftBpm();
 		mBatch.end();
 		renderLeftSelection();		
 	}
@@ -1026,7 +1106,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mBatch.begin();
 		renderRightOutlines();
 		renderRightNotes();
-		renderRightMeasures();		
+		renderRightMeasures();	
+		renderRightBpm();
 		mBatch.end();
 		renderRightSelection();
 	}
@@ -1072,30 +1153,56 @@ public class SongEditScreen extends AbstractGameScreen {
 	}
 	
 	private void renderLeftMeasures(){
-		int numMeasures = (int)Math.ceil(mData.getBpm() * mData.getLength() / 60.f / 4.f);
+		
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		float renderY = mLeftCamera.position.y + mTrackHeight / 2.f + Assets.instance.fonts.defaultFont.getLineHeight() + Constants.CELL_PADDING;
 		float renderX = -mTrackWidth / 2.f + mUpButton.getWidth();
-		for(int i = 1; i < numMeasures; ++i){			
+		int i = 1;
+		while (renderX < mLeftCamera.position.x + (mTrackWidth * Constants.MAX_ZOOM)){	
 			Assets.instance.fonts.defaultFont.drawMultiLine(
 					mBatch, Integer.toString(i),
 					renderX, renderY,
 					0, BitmapFont.HAlignment.CENTER);
 			renderX += 4 * measureWidthPixels;
+			++i;
 		}
 	}
 	
 	private void renderRightMeasures(){
-		int numMeasures = (int)Math.ceil(mData.getBpm() * mData.getLength() / 60.f / 4.f);
+		
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		float renderY = mRightCamera.position.y + mTrackHeight / 2.f + Assets.instance.fonts.defaultFont.getLineHeight() + Constants.CELL_PADDING;
 		float renderX = mTrackWidth / 2.f - mUpButton.getWidth();
-		for(int i = 1; i < numMeasures; ++i){			
+		int i = 1;
+		while (renderX > mRightCamera.position.x - (mTrackWidth * Constants.MAX_ZOOM)){	
 			Assets.instance.fonts.defaultFont.drawMultiLine(
 					mBatch, Integer.toString(i),
 					renderX, renderY,
 					0, BitmapFont.HAlignment.CENTER);
 			renderX -= 4 * measureWidthPixels;
+			++i;
+		}
+	}
+	
+	private void renderLeftBpm(){
+		
+		float renderY = mLeftCamera.position.y - mTrackHeight / 2.f - Assets.instance.fonts.defaultFont.getLineHeight() - Constants.CELL_PADDING;
+		for(BPMMarker marker : mLeftMarkers){
+			Assets.instance.fonts.defaultFont.drawMultiLine(
+					mBatch, String.format("%.2f", marker.bpm) + " BPM",
+					marker.position.x + marker.getBounds().width / 2.f, renderY,
+					0, BitmapFont.HAlignment.CENTER);					
+		}
+	}
+	
+	private void renderRightBpm(){
+		
+		float renderY = mRightCamera.position.y - mTrackHeight / 2.f - Assets.instance.fonts.defaultFont.getLineHeight() - Constants.CELL_PADDING;
+		for(BPMMarker marker : mRightMarkers){
+			Assets.instance.fonts.defaultFont.drawMultiLine(
+					mBatch, String.format("%.2f", marker.bpm) + " BPM",
+					marker.position.x + marker.getBounds().width / 2.f, renderY,
+					0, BitmapFont.HAlignment.CENTER);					
 		}
 	}
 	
@@ -1157,6 +1264,20 @@ public class SongEditScreen extends AbstractGameScreen {
 				(beat > note.beat || Math.abs(beat - note.beat) < 1.f/64) && 
 				note.slot == slot){
 				note.flagForRemoval();
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean removeMarker(float beat){
+		
+		ArrayList<BPMMarker> currentMarkers= (mLeft) ? mLeftMarkers : mRightMarkers;
+		
+		//Don't use equality due to floating point error
+		for(BPMMarker marker : currentMarkers){
+			if (Math.abs(marker.beat - beat) < 1.f/64){
+				marker.flagForRemoval();
 				return true;
 			}
 		}
@@ -1390,13 +1511,90 @@ public class SongEditScreen extends AbstractGameScreen {
 		mActiveHoldNotes.add(note);
 	}
 	
+	private void placeMarker(float beat, float bpm){
+		
+		removeMarker(beat - mCurrentBeat);
+		if (getBpm(beat) == beat) return;
+		BPMMarker marker = new BPMMarker(beat, bpm, mLeft);
+		
+		//Center note relative to track and up/down buttons
+		
+		if (mLeft){
+			marker.setPosition(
+				mLeftCamera.position.x - marker.getBounds().width / 2.f,
+				mLeftCamera.position.y - marker.getBounds().height / 2.f);
+		}
+		else{
+			marker.setPosition(
+				mRightCamera.position.x - marker.getBounds().width / 2.f,
+				mRightCamera.position.y - marker.getBounds().height / 2.f);
+		}
+
+		
+		//Move to starting position (beat 0)
+		if (mLeft)
+			marker.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			marker.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		//Move to appropriate beat
+		float measureWidthPixels = marker.getBounds().width * Constants.MEASURE_WIDTH_NOTES;
+		if (mLeft)
+			marker.moveBy(measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		else
+			marker.moveBy(-measureWidthPixels * (beat - mCurrentBeat), 0.f);
+		
+		if (mLeft)
+			mLeftMarkers.add(marker);
+		else
+			mRightMarkers.add(marker);
+		
+		if (mLeft)
+			mLeftBuilder.addMarker(marker);
+		else
+			mRightBuilder.addMarker(marker);
+	}
+	
+	private void placeNewMarker(float bpm){
+		
+		removeMarker(mCurrentBeat);
+		if (getBpm(mCurrentBeat) == bpm) return;
+		BPMMarker marker = new BPMMarker(mCurrentBeat, bpm, mLeft);
+		
+		//Center note relative to track and up/down buttons
+		if (mLeft){
+			marker.setPosition(
+				mLeftCamera.position.x - marker.getBounds().width / 2.f,
+				mLeftCamera.position.y - marker.getBounds().height / 2.f);
+		}
+		else{
+			marker.setPosition(
+				mRightCamera.position.x - marker.getBounds().width / 2.f,
+				mRightCamera.position.y - marker.getBounds().height / 2.f);
+		}
+		
+		//Move to starting position (beat 0)
+		if (mLeft)
+			marker.moveBy(-mLeftCamera.viewportWidth / 2.f + 2 * mUpButton.getWidth() / 2.f, 0);
+		else
+			marker.moveBy(mRightCamera.viewportWidth / 2.f - 2 * mUpButton.getWidth() / 2.f, 0);
+		
+		if (mLeft)
+			mLeftMarkers.add(marker);
+		else
+			mRightMarkers.add(marker);
+		
+		if (mLeft)
+			mLeftBuilder.addMarker(marker);
+		else
+			mRightBuilder.addMarker(marker);
+	}
+	
 	private void onLeftPress(){
 		
 		//If we're at beat 0 or max beat return
 		if (mCurrentBeat == 0.f && mLeft) return;
-		int maxBeat = (int) (mData.getBpm() * (mData.getLength() / 60.f));
-		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1 && !mLeft) return;
-		
+
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		if (mLeft)
 			mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
@@ -1419,25 +1617,6 @@ public class SongEditScreen extends AbstractGameScreen {
 			
 			mCurrentBeatFraction = new Fraction();
 			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = 0.f;
-		}
-		
-		//We've scrolled past the max beat
-		else if (mCurrentBeatFraction.toFloat() > maxBeat && !mLeft){
-			
-			for(OutlineNote note : mRightOutlines){
-				note.moveBy(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			}
-			mRightCamera.translate(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			
-			for(OutlineNote note : mLeftOutlines){
-				note.moveBy((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			}
-			mLeftCamera.translate((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			
-			mCurrentBeatFraction = new Fraction(maxBeat, 1);
-			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);					
 		}
 		
 		else{
@@ -1460,7 +1639,6 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 
 			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 			currentCam.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 			otherCam.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 
@@ -1523,9 +1701,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		
 		//If we're at beat 0 or max beat return
 		if (mCurrentBeat == 0.f && !mLeft) return;
-		int maxBeat = (int) (mData.getBpm() * (mData.getLength() / 60.f));
-		if (mCurrentBeatFraction.getNumerator() == maxBeat && mCurrentBeatFraction.getDenominator() == 1 && mLeft) return;
-		
+
 		float measureWidthPixels = mRightOutlines[0].getBounds().width * Constants.MEASURE_WIDTH_NOTES;		
 		if (!mLeft)
 			mCurrentBeatFraction = mCurrentBeatFraction.minus(1, mNoteQuantizations[mColorIndex]);
@@ -1548,25 +1724,6 @@ public class SongEditScreen extends AbstractGameScreen {
 			
 			mCurrentBeatFraction = new Fraction();
 			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = 0.f;
-		}
-		
-		//We've scrolled past the max beat
-		else if (mCurrentBeatFraction.toFloat() > maxBeat && mLeft){
-			
-			for(OutlineNote note : mLeftOutlines){
-				note.moveBy((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			}
-			mLeftCamera.translate((maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			
-			for(OutlineNote note : mRightOutlines){
-				note.moveBy(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			}
-			mRightCamera.translate(-(maxBeat - mCurrentBeat) * measureWidthPixels, 0.f);
-			
-			mCurrentBeatFraction = new Fraction(maxBeat, 1);
-			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);			
 		}
 		
 		else{
@@ -1589,7 +1746,6 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 
 			mCurrentBeat = mCurrentBeatFraction.toFloat();
-			mCurrentSecond = mCurrentBeat / (mData.getBpm() / 60.f);
 			currentCam.translate(measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 			otherCam.translate(-measureWidthPixels / mNoteQuantizations[mColorIndex], 0);
 
@@ -1844,5 +2000,27 @@ public class SongEditScreen extends AbstractGameScreen {
 			placeHoldNote(newBeat, hold.getHoldDuration(), hold.slot, Note.beatToType(newBeat));
 	
 		}
+	}
+	
+	private float getBpm(float beat){
+		
+		ArrayList<BPMMarker> currentMarkers = (mLeft) ? mLeftMarkers : mRightMarkers;
+		float currentBpm = mData.getBpm();
+		for (BPMMarker marker : currentMarkers){
+
+			if (marker.beat < beat)
+				currentBpm = marker.bpm;
+			
+			if (Math.abs(marker.beat - beat) < 1.f / 64)
+				return marker.beat;
+			
+			if (marker.beat > beat)
+				return currentBpm;
+		}
+		return currentBpm;
+	}
+	
+	private void requestTrackSwitch(){
+		mTrackSwitchRequested = true;
 	}
 }

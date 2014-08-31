@@ -1,0 +1,352 @@
+<map version="1.0" orientation="orthogonal" width="1809" height="3" tilewidth="1" tileheight="1">
+	<properties>
+		<property name="bpm" value="125.0"/>
+		<property name="offset" value="0.43"/>
+		<property name="title" value="Earthquake"/>
+		<property name="artist" value="HD Dubstep"/>
+		<property name="length" value="217"/>
+	</properties>
+	<objectgroup name="Notes" width="1809" height="3">
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="32.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="33.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="33.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="36.5"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="37.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="37.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="34.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="34.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="35.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="38.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="38.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="39.0"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="40.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="41.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="41.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="42.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="42.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="43.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="44.5"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="45.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="45.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="46.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="46.5"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="47.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="48.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="49.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="49.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="50.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="50.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="51.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="52.5"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="53.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="53.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="54.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="54.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="55.0"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="56.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="57.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="57.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="58.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="58.5"/>
+				<property name="slot" value="bottom_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="59.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="60.5"/>
+				<property name="slot" value="top_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="61.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="61.5"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="quarter"/>
+				<property name="beat" value="62.0"/>
+				<property name="slot" value="middle_right"/>
+			</properties>
+		</object>
+	</objectgroup>
+	<objectgroup name="Holds" width="1809" height="3">
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="62.5"/>
+				<property name="slot" value="top_right"/>
+				<property name="hold" value="0.5"/>
+			</properties>
+		</object>
+		<object>
+			<properties>
+				<property name="type" value="eighth"/>
+				<property name="beat" value="63.5"/>
+				<property name="slot" value="middle_right"/>
+				<property name="hold" value="0.5"/>
+			</properties>
+		</object>
+	</objectgroup>
+	<objectgroup name="Markers" width="1809" height="3"/>
+</map>

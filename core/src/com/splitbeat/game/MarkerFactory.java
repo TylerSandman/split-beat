@@ -10,8 +10,8 @@ public class MarkerFactory {
 		int mapWidth = map.getProperties().get("width", Integer.class);
 		int tileWidth = map.getProperties().get("tilewidth", Integer.class);
 		
-		float notePos = mObject.getProperties().get("x", Float.class);
-		float beat = (mapWidth - (notePos / tileWidth) - 1) / 4.f;
+		String beatStr = mObject.getProperties().get("beat", String.class);
+		float beat = Float.parseFloat(beatStr);
 		String bpmStr= mObject.getProperties().get("bpm", String.class);
 		float bpm = Float.parseFloat(bpmStr);
 		

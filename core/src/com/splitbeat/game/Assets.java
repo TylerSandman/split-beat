@@ -1,7 +1,16 @@
 package com.splitbeat.game;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
+import org.jaudiotagger.tag.TagException;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetDescriptor;
@@ -100,7 +109,7 @@ public class Assets implements Disposable, AssetErrorListener{
 				if (oggSongs.length > 0)
 					loadPath = handle.path() + "/" + oggSongs[0].name();
 				else if (mp3Songs.length > 0)
-					loadPath = handle.path() + "?" + mp3Songs[0].name();
+					loadPath = handle.path() + "/" + mp3Songs[0].name();
 					
 				else
 					continue;
@@ -301,23 +310,39 @@ public class Assets implements Disposable, AssetErrorListener{
 								am.get(hardPath + "right.tmx", TiledMap.class));
 						map = am.get(hardPath + "left.tmx", TiledMap.class);
 					}
-					if (map == null) continue;
-					MapProperties props = map.getProperties();
 					
-					String bpmStr= map.getProperties().get("bpm", String.class);
-					float bpm = (float) Double.parseDouble(bpmStr);
-					data.setBpm(bpm);
-					
-					String offsetStr= map.getProperties().get("offset", String.class);
-					float offset = (float) Double.parseDouble(offsetStr);
-					data.setOffset(offset);
-					
-					String lenStr= map.getProperties().get("length", String.class);
-					int len = Integer.parseInt(lenStr);
-					data.setLength(len);
-					
-					data.setArtist(props.get("artist", String.class));
-					data.setTitle(props.get("title", String.class));
+					File file = new FileHandle(basePath + ".ogg").file();
+					if (!file.exists())
+						file = new FileHandle(basePath + ".mp3").file();
+					AudioFile aFile;
+					int duration = 0;
+					try {
+						aFile = AudioFileIO.read(file);
+						duration = aFile.getAudioHeader().getTrackLength();
+						data.setLength(duration);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					if (map != null){
+						MapProperties props = map.getProperties();
+						
+						String bpmStr= map.getProperties().get("bpm", String.class);
+						float bpm = (float) Double.parseDouble(bpmStr);
+						data.setBpm(bpm);
+						
+						String offsetStr= map.getProperties().get("offset", String.class);
+						float offset = (float) Double.parseDouble(offsetStr);
+						data.setOffset(offset);
+						
+						data.setArtist(props.get("artist", String.class));
+						data.setTitle(props.get("title", String.class));
+					}
+					else{
+						data.setTitle(handle.name());
+						data.setArtist("");
+						data.setOffset(0.f);
+						data.setBpm(120.f);
+					}
 					dataMap.put(handle.name(), data);
 				}
 			}
@@ -325,15 +350,17 @@ public class Assets implements Disposable, AssetErrorListener{
 		
 		public void updateMap(String name, Difficulty difficulty, SongData updatedData){
 			
-			if (dataMap.get(name) == null || dataMap.get(name).getLeftMap(difficulty) == null) return;
+			if (dataMap.get(name) == null) return;
 			String mapsPath = Constants.DEFAULT_MAPS_PATH + name + "/";
 			mapsPath += name.toLowerCase().replace(" ", "_");
 			mapsPath += "_";
 			mapsPath += difficulty.toString().toLowerCase();
 			String leftPath = mapsPath + "_left.tmx";
 			String rightPath = mapsPath + "_right.tmx";
-			mAssetManager.unload(leftPath);
-			mAssetManager.unload(rightPath);
+			if (mAssetManager.isLoaded(leftPath) && mAssetManager.isLoaded(rightPath)){
+				mAssetManager.unload(leftPath);
+				mAssetManager.unload(rightPath);
+			}
 			mAssetManager.load(leftPath, TiledMap.class);
 			mAssetManager.load(rightPath, TiledMap.class);
 			mAssetManager.finishLoading();

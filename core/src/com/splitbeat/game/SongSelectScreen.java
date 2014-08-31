@@ -175,6 +175,15 @@ public class SongSelectScreen extends AbstractGameScreen {
 			mMediumScoreLabel.setColor(Color.GRAY);
 		if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Hard) == null)
 			mHardScoreLabel.setColor(Color.GRAY);
+		
+		if (mSongDataArr.get(mSelectedIndex).getLeftMap(mSelectedDifficulty) == null){
+			for (Difficulty dif : Difficulty.values()){
+				if (mSongDataArr.get(mSelectedIndex).getLeftMap(dif) != null){
+					selectDifficulty(dif);
+					break;
+				}
+			}
+		}
 
 		mEasyScoreLabel.setText(easyScore);
 		mMediumScoreLabel.setText(mediumScore);
@@ -357,7 +366,8 @@ public class SongSelectScreen extends AbstractGameScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
 				if (mSelectedIndex < 0) return true;
-				selectDifficulty(Difficulty.Easy);
+				if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Easy) != null)
+					selectDifficulty(Difficulty.Easy);
 				return true;
 			}
 		});
@@ -366,7 +376,8 @@ public class SongSelectScreen extends AbstractGameScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
 				if (mSelectedIndex < 0) return true;
-				selectDifficulty(Difficulty.Medium);
+				if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Medium) != null)
+					selectDifficulty(Difficulty.Medium);
 				return true;
 			}
 		});
@@ -375,7 +386,8 @@ public class SongSelectScreen extends AbstractGameScreen {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button)  {
 				if (mSelectedIndex < 0) return true;
-				selectDifficulty(Difficulty.Hard);
+				if (mSongDataArr.get(mSelectedIndex).getLeftMap(Difficulty.Hard) != null)
+					selectDifficulty(Difficulty.Hard);
 				return true;
 			}
 		});
