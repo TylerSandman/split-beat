@@ -20,6 +20,7 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.InputEvent.Type;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -61,6 +62,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	private int[] mNoteQuantizations;
 	private NoteClipboard mClipboard;
 	private NoteSelection mNoteSelection;
+	private ArrayList<NoteChange> mChangeArray;
+	private int mChangeIndex;
 	private boolean mLeft;
 	private boolean mTrackSwitchRequested;
 	
@@ -131,6 +134,8 @@ public class SongEditScreen extends AbstractGameScreen {
 				"Edit BPM Change",
 				"Jump to beat",
 				"Open/close selector",
+				"Undo",
+				"Redo",
 				"Cut",
 				"Copy",
 				"Paste",
@@ -159,6 +164,8 @@ public class SongEditScreen extends AbstractGameScreen {
 		mCurrentBeatFraction = new Fraction();
 		mClipboard = new NoteClipboard();
 		mNoteSelection = new NoteSelection();
+		mChangeArray = new ArrayList<NoteChange>();
+		mChangeIndex = -1;
 		mLeft = false;
 		mTrackSwitchRequested = false;
 		
@@ -203,6 +210,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mLeftBuilder.create(mData, mDifficulty);
 		mRightBuilder.create(mData, mDifficulty);
 		
+		//Create new map for the difficulty if it doesn't exist
 		String leftSongPath = 
 				Constants.DEFAULT_MAPS_PATH + "/" + mData.getName() + "/" + 
 				mData.getName().toLowerCase().replace(" ", "_");
@@ -219,6 +227,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		mRightMap = mData.getRightMap(mDifficulty);
 		mPendingChangeData = new SongData(mData);
 		
+		//Build our interface
 		buildMenu();
 		buildButtons();
 		buildInformation();
@@ -389,8 +398,7 @@ public class SongEditScreen extends AbstractGameScreen {
 				new OutlineNote(NoteSlot.BOTTOM_RIGHT, mScoreManager)
 		};
 		
-		//Center outlines relative to track and up/down buttons
-		
+		//Center outlines relative to track and up/down buttons	
 		for(OutlineNote note : mLeftOutlines){
 			
 			note.setPosition(
@@ -493,8 +501,24 @@ public class SongEditScreen extends AbstractGameScreen {
 			}
 		});
 		
-		//Cut
+		//Undo
 		mEditDropDownMenu.addItemListener(5, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				undo();
+			}
+		});
+				
+		//Redo
+		mEditDropDownMenu.addItemListener(6, new InputListener(){
+			
+			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
+				redo();
+			}
+		});
+		
+		//Cut
+		mEditDropDownMenu.addItemListener(7, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				cutNotes();
@@ -502,7 +526,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Copy
-		mEditDropDownMenu.addItemListener(6, new InputListener(){
+		mEditDropDownMenu.addItemListener(8, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				copyNotes();
@@ -510,7 +534,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Paste
-		mEditDropDownMenu.addItemListener(7, new InputListener(){
+		mEditDropDownMenu.addItemListener(9, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				pasteNotes();
@@ -518,7 +542,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Save
-		mEditDropDownMenu.addItemListener(8, new InputListener(){
+		mEditDropDownMenu.addItemListener(10, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				onSave();
@@ -527,7 +551,7 @@ public class SongEditScreen extends AbstractGameScreen {
 		});
 		
 		//Exit
-		mEditDropDownMenu.addItemListener(9, new InputListener(){
+		mEditDropDownMenu.addItemListener(11, new InputListener(){
 			
 			public void touchUp (InputEvent event, float x, float y, int pointer, int button) {
 				game.setScreen(new MenuScreen(game));
@@ -1246,28 +1270,34 @@ public class SongEditScreen extends AbstractGameScreen {
 	@Override
 	public void pause() {}
 	
-	private boolean removeNote(NoteSlot slot, float beat){
+	private Note removeNote(NoteSlot slot, float beat){
 		
 		ArrayList<Note> currentNotes = (mLeft) ? mLeftRegularNotes : mRightRegularNotes;
-		ArrayList<HoldNote> currentHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
+		
 		
 		//Don't use equality due to floating point error
 		for(Note note : currentNotes){
 			if (Math.abs(note.beat - beat) < 1.f/64 && note.slot == slot){
 				note.flagForRemoval();
-				return true;
+				return new Note(note, mScoreManager);
 			}
-		}
+		}	
+		return null;
+	}
+	
+	private HoldNote removeHoldNote(NoteSlot slot, float beat){
+		
+		ArrayList<HoldNote> currentHoldNotes = (mLeft) ? mLeftHoldNotes : mRightHoldNotes;
 		
 		for(HoldNote note : currentHoldNotes){
 			if (beat <= note.beat + note.getHoldDuration() && 
 				(beat > note.beat || Math.abs(beat - note.beat) < 1.f/64) && 
 				note.slot == slot){
 				note.flagForRemoval();
-				return true;
+				return new HoldNote(note, mData.getBpm(), mScoreManager);
 			}
 		}
-		return false;
+		return null;		
 	}
 	
 	private boolean removeMarker(float beat){
@@ -1286,7 +1316,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void placeNote(float beat, NoteSlot slot, NoteType type){
 		
-		removeNote(slot, (beat - mCurrentBeat));
+		removeNote(slot, beat);
+		removeHoldNote(slot, beat);
 		Note note = new Note(beat, slot, type, mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
@@ -1404,7 +1435,8 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void placeHoldNote(float beat, float duration, NoteSlot slot, NoteType type){
 		
-		removeNote(slot, (beat - mCurrentBeat));
+		removeNote(slot, beat);
+		removeHoldNote(slot, beat);
 		HoldNote note = new HoldNote(beat, slot, type, duration, mData.getBpm(), mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
@@ -1467,6 +1499,7 @@ public class SongEditScreen extends AbstractGameScreen {
 	private void placeNewHoldNote(NoteSlot slot, NoteType type){
 		
 		removeNote(slot, mCurrentBeat);
+		removeHoldNote(slot, mCurrentBeat);
 		HoldNote note = new HoldNote(mCurrentBeat, slot, type, 0.f, mData.getBpm(), mScoreManager, mLeft);
 		
 		//Center note relative to track and up/down buttons
@@ -1850,8 +1883,21 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void onSlotPress(NoteSlot slot){
 
-		if (removeNote(slot, mCurrentBeat))
+		Note removed = removeNote(slot, mCurrentBeat);
+		HoldNote removedHold = removeHoldNote(slot, mCurrentBeat);
+		ArrayList<Note> toRemove = new ArrayList<Note>();
+		ArrayList<HoldNote> toRemoveHolds = new ArrayList<HoldNote>();
+		if (removed != null || removedHold != null){		
+			if (removed != null)
+				toRemove.add(removed);
+			if (removedHold != null)
+				toRemoveHolds.add(removedHold);
+			for(int i = mChangeIndex + 1; i < mChangeArray.size(); ++i)
+				mChangeArray.remove(i);
+			mChangeArray.add(new RemoveNoteChange(toRemove, toRemoveHolds));
+			mChangeIndex = mChangeArray.size() - 1;
 			return;
+		}
 		NoteType type = NoteType.THIRTY_SECOND;
 		switch(mCurrentBeatFraction.getDenominator()){
 		case 1:
@@ -1881,12 +1927,16 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void onSlotRelease(NoteSlot slot){
 		
+		ArrayList<Note> addedNotes = new ArrayList<Note>();
+		ArrayList<HoldNote> addedHolds = new ArrayList<HoldNote>();
+		
 		//Replace hold notes which have duration 0 with regular notes
 		ArrayList<HoldNote> toRemove = new ArrayList<HoldNote>();
 		for(HoldNote note : mActiveHoldNotes){
 			if (note.getHoldDuration() < 1.f / 64 && note.slot == slot){
 				toRemove.add(note);
 				placeNewNote(slot, note.type);
+				addedNotes.add(new Note(mCurrentBeat, slot, note.type, mScoreManager));
 			}
 		}
 		mActiveHoldNotes.removeAll(toRemove);
@@ -1902,12 +1952,20 @@ public class SongEditScreen extends AbstractGameScreen {
 					mRightHoldNotes.add(note);
 					mRightBuilder.addHold(note);
 				}
+				addedHolds.add(new HoldNote(note.beat, note.slot, note.type, note.getHoldDuration(), mData.getBpm(), mScoreManager));
 			}
 		}
 		if (mLeft)
 			mActiveHoldNotes.removeAll(mLeftHoldNotes);		
 		else
-			mActiveHoldNotes.removeAll(mRightHoldNotes);		
+			mActiveHoldNotes.removeAll(mRightHoldNotes);	
+		
+		if (!addedNotes.isEmpty() || !addedHolds.isEmpty()){			
+			for(int i = mChangeIndex + 1; i < mChangeArray.size(); ++i)
+				mChangeArray.remove(i);
+			mChangeArray.add(new AddNoteChange(addedNotes, addedHolds));
+			mChangeIndex = mChangeArray.size() - 1;
+		}
 	}
 	
 	private void scrollToBeat(int beat){
@@ -1956,7 +2014,11 @@ public class SongEditScreen extends AbstractGameScreen {
 					holds.add(new HoldNote(hold, mData.getBpm(), new ScoreManager()));
 					hold.flagForRemoval();
 				}
-			}			
+			}	
+			for(int i = mChangeIndex + 1; i < mChangeArray.size(); ++i)
+				mChangeArray.remove(i);
+			mChangeArray.add(new RemoveNoteChange(notes, holds));
+			mChangeIndex = mChangeArray.size() - 1;
 		}
 		mClipboard.copy(notes,  holds);
 	}
@@ -1990,6 +2052,10 @@ public class SongEditScreen extends AbstractGameScreen {
 		float beatDifference = mClipboard.getFirstBeat() - mCurrentBeat;
 		ArrayList<Note> notes = mClipboard.getNotes();
 		ArrayList<HoldNote> holds = mClipboard.getHoldNotes();
+		for(int i = mChangeIndex + 1; i < mChangeArray.size(); ++i)
+			mChangeArray.remove(i);
+		mChangeArray.add(new AddNoteChange(notes, holds));
+		mChangeIndex = mChangeArray.size() - 1;
 		
 		for (Note note : notes){
 			float newBeat = note.beat - beatDifference;
@@ -2022,5 +2088,72 @@ public class SongEditScreen extends AbstractGameScreen {
 	
 	private void requestTrackSwitch(){
 		mTrackSwitchRequested = true;
+	}
+	
+	private void undo(){
+		
+		if (mChangeIndex == -1) return;
+		ArrayList<Note> affectedRegularNotes = mChangeArray.get(mChangeIndex).getRegularNotes();
+		ArrayList<HoldNote> affectedHoldNotes = mChangeArray.get(mChangeIndex).getHoldNotes();
+		if (mChangeArray.get(mChangeIndex).getType() == NoteChange.Type.Add){
+			
+			for(Note note : affectedRegularNotes){
+				this.removeNote(note.slot, note.beat);
+				this.removeHoldNote(note.slot, note.beat);
+			}
+			
+			for(HoldNote hold : affectedHoldNotes){
+				this.removeNote(hold.slot, hold.beat);
+				this.removeHoldNote(hold.slot, hold.beat);
+			}
+			
+		}
+		
+		if (mChangeArray.get(mChangeIndex).getType() == NoteChange.Type.Remove){
+			
+			for(Note note : affectedRegularNotes){
+				this.placeNote(note.beat, note.slot, note.type);
+			}
+			
+			for(HoldNote hold : affectedHoldNotes){
+				this.placeHoldNote(hold.beat, hold.getHoldDuration(), hold.slot, hold.type);
+			}
+			
+		}
+		if (mChangeIndex > 0)
+			mChangeIndex--;
+	}
+	
+	private void redo(){
+		
+		if (mChangeIndex == -1) return;
+		ArrayList<Note> affectedRegularNotes = mChangeArray.get(mChangeIndex).getRegularNotes();
+		ArrayList<HoldNote> affectedHoldNotes = mChangeArray.get(mChangeIndex).getHoldNotes();
+		if (mChangeArray.get(mChangeIndex).getType() == NoteChange.Type.Add){
+			
+			for(Note note : affectedRegularNotes){
+				this.placeNote(note.beat, note.slot, note.type);
+			}
+			
+			for(HoldNote hold : affectedHoldNotes){
+				this.placeHoldNote(hold.beat, hold.getHoldDuration(), hold.slot, hold.type);
+			}
+			
+		}
+		
+		if (mChangeArray.get(mChangeIndex).getType() == NoteChange.Type.Remove){
+			
+			for(Note note : affectedRegularNotes){
+				this.removeNote(note.slot, note.beat);
+				this.removeHoldNote(note.slot, note.beat);
+			}
+			
+			for(HoldNote hold : affectedHoldNotes){
+				this.removeNote(hold.slot, hold.beat);
+				this.removeHoldNote(hold.slot, hold.beat);
+			}		
+		}
+		if (mChangeIndex < mChangeArray.size() - 1)
+			mChangeIndex++;
 	}
 }

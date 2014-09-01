@@ -1,0 +1,12 @@
+<map version="1.0" orientation="orthogonal" width="1809" height="3" tilewidth="1" tileheight="1">
+	<properties>
+		<property name="bpm" value="125.0"/>
+		<property name="offset" value="0.43"/>
+		<property name="title" value="Earthquake"/>
+		<property name="artist" value="HD Dubstep"/>
+		<property name="length" value="217"/>
+	</properties>
+	<objectgroup name="Notes" width="1809" height="3"/>
+	<objectgroup name="Holds" width="1809" height="3"/>
+	<objectgroup name="Markers" width="1809" height="3"/>
+</map>

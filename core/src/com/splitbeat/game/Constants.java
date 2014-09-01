@@ -162,4 +162,5 @@ public class Constants {
 	public static final float MAX_ZOOM = 3.0f;
 	public static final float MIN_ZOOM = 1.0f;
 	public static final float ZOOM_INCREMENT = 0.1f;
+	public static final int NUM_REDOS = 50;
 }
